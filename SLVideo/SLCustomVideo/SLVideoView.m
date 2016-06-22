@@ -8,6 +8,7 @@
 
 #import "SLVideoView.h"
 #import <AVFoundation/AVFoundation.h>
+#import <MediaPlayer/MediaPlayer.h>
 
 
 typedef NS_ENUM(NSInteger, VideoDirection){
@@ -94,7 +95,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         
         //创建滑动条等控件
         [self createSliderWithPlayerItem:self.playerItem];
-        
+        [self controlVolume];
     }
     return self;
 }
@@ -121,7 +122,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             self.totalTimeLbl.text = _totalTime;
             
             // 监听当前时间
-            [self currentTimeUpdate:self.playerItem];
+            [self currentTimeUpdate];
             
         } else if ([playerItem status] == AVPlayerStatusFailed) {
             
@@ -139,15 +140,18 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     }
 }
 
-- (void)currentTimeUpdate:(AVPlayerItem *)playerItem {
+/**
+ *  监听当前的时间
+ *
+ */
+- (void)currentTimeUpdate{
     
     __weak typeof(self) weakSelf = self;
     //每秒监听一次
     [self.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
-        
+
         // 计算当前在第几秒
-        CGFloat currentSecond = playerItem.currentTime.value/playerItem.currentTime.timescale;
-//        NSLog(@"当前是+++++%lf",currentSecond);
+        CGFloat currentSecond = time.value/time.timescale;
         
         //给slider赋值
         [weakSelf.slider setValue:currentSecond animated:YES];
@@ -160,7 +164,13 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     }];
 }
 
-//格式化时间
+/**
+ *  格式化时间
+ *
+ *  @param second 秒
+ *
+ *  @return 格式化后的时间
+ */
 - (NSString *)formatTime:(CGFloat)second{
     NSDate *date = [NSDate dateWithTimeIntervalSince1970:second];
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc]init];
@@ -174,7 +184,11 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 }
 
 
-// 计算缓冲总进度
+/**
+ *  计算缓冲总进度
+ *
+ *  @return 缓冲进度
+ */
 - (NSTimeInterval)availableDuration {
     NSArray *loadedTimeRanges = [[self.player currentItem] loadedTimeRanges];
     CMTimeRange timeRange = [loadedTimeRanges.firstObject CMTimeRangeValue];// 获取缓冲区域
@@ -184,7 +198,11 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     return result;
 }
 
-//创建控制面板
+/**
+ *  创建控制面板
+ *
+ *  @param playerItem 当前视频控制对象
+ */
 - (void)createSliderWithPlayerItem:(AVPlayerItem *)playerItem{
     
     //顶部横条，包括返回，标题，高清，收藏，分享
@@ -258,12 +276,47 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     NSLog(@"value end:%f",slider.value);
     CMTime changedTime = CMTimeMakeWithSeconds(slider.value, 1);
     
-    __weak typeof(self) weakSelf = self;
+//    __weak typeof(self) weakSelf = self;
     [_player seekToTime:changedTime completionHandler:^(BOOL finished) {
 
 //        [weakSelf.playBtn setTitle:@"Stop" forState:UIControlStateNormal];
     }];
 
+}
+
+/**
+ *  控制系统音量
+ */
+-(void)controlVolume{
+
+    MPVolumeView *volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(0, (self.frame.size.height - 70)/2.0f + 10, 50, 70)];
+    volumeView.showsRouteButton = NO;
+    volumeView.showsVolumeSlider = YES;
+    
+    [volumeView sizeToFit];
+    
+    UISlider* volumeViewSlider = nil;
+    for (UIView *view in [volumeView subviews]){
+        if ([view.class.description isEqualToString:@"MPVolumeSlider"]){
+            volumeViewSlider = (UISlider*)view;
+            break;
+        }
+    }
+    
+    volumeView.transform = CGAffineTransformMakeRotation(-M_PI_2);
+    volumeViewSlider.tintColor = [UIColor whiteColor];
+    [volumeViewSlider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(0.1, 0.1)] forState:UIControlStateNormal];
+    
+    // retrieve system volume
+//    float systemVolume = volumeViewSlider.value;
+    
+    // change system volume, the value is between 0.0f and 1.0f
+    [volumeViewSlider setValue:0.5f animated:NO];
+    
+    // send UI control event to make the change effect right now.
+    [volumeViewSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
+
+    [self addSubview:volumeView];
 }
 
 //改变图片的大小
@@ -346,7 +399,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 
 }
 
-
+#pragma TODO
 //重载一个获取layer的方法(必须实现)
 //默认的layer属性是CALayer类型的，在此改成AVPlayerLayer类型
 + (Class)layerClass
