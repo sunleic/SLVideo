@@ -15,13 +15,32 @@
 
 @implementation ViewController
 
+-(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    
+    [[UIApplication sharedApplication]setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
     
-    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 100, self.view.bounds.size.width, 220) url:@"http://localhost/video.mp4"];
+    
+    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://localhost/video.mp4"];
+    video.center = self.view.center;
+    
+    //状态栏转向
+    [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
+
+    [UIView animateWithDuration:0.3f animations:^{
+        video.transform = CGAffineTransformMakeRotation(M_PI/2);
+
+        video.center = CGPointMake([UIScreen mainScreen].bounds.size.width/2.0f, [UIScreen mainScreen].bounds.size.height/2.0f);
+
+    }];
     [self.view addSubview:video];
+   
 
 }
 

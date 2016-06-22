@@ -28,17 +28,24 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //用于高级自定义，视频管理者
 @property (nonatomic, strong) AVPlayerItem *playerItem;
 
-//顶部视图，包括返回按钮，标题，收藏，分享等
+//顶部视图，包括返回按钮，标题，高清，收藏，分享
 @property (nonatomic, strong) UIView *topView;
 
 @property (nonatomic, strong) UIButton *backBtn;
 
 @property (nonatomic, strong) UILabel *videoTitleLbl;
 
+@property (nonatomic, strong) UIButton *HDBtn;
+
+@property (nonatomic, strong) UIButton *collectionBtn;
+
 @property (nonatomic, strong) UIButton *shareBtn;
 
 //添加一个播放展厅按钮
 @property (nonatomic, strong) UIButton *playBtn;
+
+//下一个视频
+@property (nonatomic, strong) UIButton *nextBtn;
 
 //当前播放时间
 @property (nonatomic, copy) NSString *currentTime;
@@ -210,21 +217,35 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     _topView.backgroundColor = [UIColor clearColor];
     [self addSubview:_topView];
     
+    //返回按钮
     _backBtn = [[UIButton alloc]initWithFrame:CGRectMake(0, 5, _topView.frame.size.height - 10, _topView.frame.size.height - 10)];
-//    _backBtn.backgroundColor = [UIColor redColor];
     [_backBtn setBackgroundImage:[UIImage imageNamed:@"btn_back_normal"] forState:UIControlStateNormal];
     
     [_topView addSubview:_backBtn];
     
+    //视频名称
     _videoTitleLbl = [[UILabel alloc]initWithFrame:CGRectMake(_backBtn.frame.origin.x + _backBtn.frame.size.width, _backBtn.frame.origin.y, 200, _backBtn.frame.size.height)];
-//    _videoTitleLbl.backgroundColor = [UIColor purpleColor];
     _videoTitleLbl.textColor = [UIColor whiteColor];
     _videoTitleLbl.text = @"测试test";
     
     [_topView addSubview:_videoTitleLbl];
     
+    //分享
+    _shareBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 30 - 10, (_topView.frame.size.height - 25)/2.0f, 25, 25)];
+    [_shareBtn setBackgroundImage:[UIImage imageNamed:@"share"] forState:UIControlStateNormal];
+    [_topView addSubview:_shareBtn];
     
-    //添加一个播放展厅按钮
+    //收藏
+    _collectionBtn = [[UIButton alloc]initWithFrame:CGRectMake(_shareBtn.frame.origin.x - _shareBtn.frame.size.width - 20, _shareBtn.frame.origin.y, _shareBtn.frame.size.height, _shareBtn.frame.size.height)];
+    [_collectionBtn setBackgroundImage:[UIImage imageNamed:@"collection"] forState:UIControlStateNormal];
+    [_topView addSubview:_collectionBtn];
+
+    //高清
+    _HDBtn = [[UIButton alloc]initWithFrame:CGRectMake(_collectionBtn.frame.origin.x - _collectionBtn.frame.size.width - 20, _collectionBtn.frame.origin.y, _collectionBtn.frame.size.height, _collectionBtn.frame.size.height)];
+    [_HDBtn setBackgroundImage:[UIImage imageNamed:@"HD"] forState:UIControlStateNormal];
+    [_topView addSubview:_HDBtn];
+    
+    //添加一个播放暂停按钮
     _playBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [_playBtn setCenter:CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2)];
     [_playBtn setBounds:CGRectMake(0, 0, 65, 65)];
@@ -232,8 +253,15 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_playBtn addTarget:self action:@selector(click:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_playBtn];
     
-    _sliderView = [[UIView alloc]initWithFrame:CGRectMake(0, self.frame.size.height - 30, self.frame.size.width, 30)];
+    //下一个视频按钮
+    _nextBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 75, (self.frame.size.height - 65)/2.0f, 65, 65)];
+    [_nextBtn setImage:[UIImage imageNamed:@"btn_next"] forState:UIControlStateNormal];
+    [_topView addSubview:_nextBtn];
     
+    
+    //缓冲进度条、当前时间、总共时间
+    _sliderView = [[UIView alloc]initWithFrame:CGRectMake(0, self.frame.size.height - 40, self.frame.size.width, 30)];
+    _sliderView.backgroundColor = [UIColor clearColor];
     [self addSubview:_sliderView];
     
     //缓冲进度条
@@ -242,7 +270,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_sliderView addSubview:_videoProgress];
     
     //当前时间
-    _currentTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 60, self.frame.size.height/8.0f)];
+    _currentTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 60, _sliderView.frame.size.height)];
     _currentTimeLbl.textAlignment = NSTextAlignmentCenter;
     _currentTimeLbl.adjustsFontSizeToFitWidth = YES;
     _currentTimeLbl.textColor = [UIColor whiteColor];
@@ -262,7 +290,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_sliderView addSubview:self.slider];
     
     //总共时间
-    _totalTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(self.frame.size.width - 60, 0, 60, self.frame.size.height/8.0f)];
+    _totalTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(self.frame.size.width - 60, 0, 60, _sliderView.frame.size.height)];
     _totalTimeLbl.textAlignment = NSTextAlignmentCenter;
     _totalTimeLbl.adjustsFontSizeToFitWidth = YES;
     _totalTimeLbl.textColor = [UIColor whiteColor];
@@ -353,25 +381,25 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         [_player pause];
         [bt setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
 
-        [UIView animateWithDuration:0.3f animations:^{
-            self.transform = CGAffineTransformIdentity;
-            self.frame = self.originaFrame;
-        }];
+//        [UIView animateWithDuration:0.3f animations:^{
+//            self.transform = CGAffineTransformIdentity;
+//            self.frame = self.originaFrame;
+//        }];
         
     }else{
         //播放
         [_player play];
         [bt setImage:[UIImage imageNamed:@"btn_pause"] forState:UIControlStateNormal];
 
-//        //按顺序显示，不然导航条和状态栏会重合的啊
-//        [[UIApplication sharedApplication] setStatusBarHidden:NO];
-//
+        //按顺序显示，不然导航条和状态栏会重合的啊
+        [[UIApplication sharedApplication] setStatusBarHidden:NO];
+
 //        //状态栏转向
 //        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
 //        
 //        [UIView animateWithDuration:0.3f animations:^{
 //            self.transform = CGAffineTransformMakeRotation(M_PI/2);
-//            self.transform = CGAffineTransformRotate(CGAffineTransformMakeScale(1.2, 1.2), M_PI/2);
+//            self.transform = CGAffineTransformRotate(CGAffineTransformMakeScale(1.5, 1.5), M_PI/2);
 //            self.center = CGPointMake([UIScreen mainScreen].bounds.size.width/2.0f, [UIScreen mainScreen].bounds.size.height/2.0f);
 //
 //        }];
