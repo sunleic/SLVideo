@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "SLVideoView.h"
+#import <AVFoundation/AVFoundation.h>
 
 @interface ViewController ()
 
@@ -26,21 +27,27 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     
+    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(100, 200, 50, 30)];
+    [btn setTitle:@"视频" forState:UIControlStateNormal];
+    [btn setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
     
-    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://localhost/video.mp4"];
-    video.center = self.view.center;
-    
-    //状态栏转向
-    [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
+    [btn addTarget:self action:@selector(btnClick:) forControlEvents:UIControlEventTouchUpInside];
+   
+    [self.view addSubview:btn];
+}
 
+-(void)btnClick:(UIButton *)button{
+    
+    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
+    video.center = self.view.center;
+    //状态栏转向
+    [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationLandscapeRight animated:YES];
+    
     [UIView animateWithDuration:0.3f animations:^{
         video.transform = CGAffineTransformMakeRotation(M_PI/2);
-
-        video.center = CGPointMake([UIScreen mainScreen].bounds.size.width/2.0f, [UIScreen mainScreen].bounds.size.height/2.0f);
-
+        
     }];
     [self.view addSubview:video];
-   
 
 }
 

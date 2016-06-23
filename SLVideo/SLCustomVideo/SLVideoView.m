@@ -68,6 +68,13 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //缓冲进度条
 @property (nonatomic, strong) UIProgressView *videoProgress;
 
+// 计算当前在第几秒
+@property (nonatomic, assign) __block CGFloat currentSecond;
+
+//缓冲的时间
+@property (nonatomic, assign) NSTimeInterval timeInterval;
+
+
 @end
 
 @implementation SLVideoView
@@ -95,6 +102,10 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
             // 监听loadedTimeRanges缓冲属性
             [self.playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
+            //当没有多余的缓冲的时候会监听
+            [_playerItem addObserver:self forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
+        
+            
             // 添加视频播放结束通知
             [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
             
@@ -103,8 +114,92 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         //创建滑动条等控件
         [self createSliderWithPlayerItem:self.playerItem];
         [self controlVolume];
+        
+        //添加拖动手势
+        UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGesture:)];
+        [self addGestureRecognizer:panGesture];
     }
     return self;
+}
+
+#pragma mark - 手势
+
+/**
+ *  多动的响应方法
+ *
+ *  @param gesture 拖动手势的对象
+ */
+-(void)panGesture:(UIPanGestureRecognizer *)gesture{
+    
+    //每秒移动的点
+    CGPoint point = [gesture velocityInView:self];
+    
+    CGFloat pointX = fabs(point.x);
+    CGFloat pointY = fabs(point.y);
+    
+//    NSLog(@"拖动了。。。X:%f------Y:%f",pointX,pointY);
+    float touchTime = _player.currentTime.value;
+    
+    
+    switch (gesture.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            NSLog(@"开始拖动。。。。");
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            NSLog(@"拖动中。。。。");
+            if (pointX > pointY) { //水平滑动
+                
+                
+                touchTime += point.x;
+
+            }else{ //上下滑动
+                
+            }
+            
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        {
+            NSLog(@"拖动结束。。。。");
+            
+            NSLog(@"拖动中。。。。");
+            if (pointX > pointY) { //水平滑动
+                
+                if (point.x > 0) { //快进
+                    NSLog(@"快进>>>>%--f",point.x);
+                    if (touchTime > _playerItem.duration.value) {
+                        return;
+                    }
+                }else{ //快退
+                    NSLog(@"<<<<快退--%f",point.x);
+                    if (touchTime < 0) {
+                        return;
+                    }
+                }
+                
+                [_player seekToTime:CMTimeMake(touchTime, 5)];
+            }else{ //上下滑动
+                
+                if (point.y < 0) {
+                    NSLog(@"大大大大大大---%f",point.y);
+                }else{
+                    NSLog(@"小小小小小小---%f",point.y);
+                }
+                
+            }
+
+            
+        }
+            break;
+            
+        default:
+            break;
+    }
+    
+    
 }
 
 //监听播放的进度 status播放状态
@@ -131,19 +226,35 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             // 监听当前时间
             [self currentTimeUpdate];
             
+            [self.player play];
+            [_playBtn setImage:[UIImage imageNamed:@"btn_pause"] forState:UIControlStateNormal];
+            
         } else if ([playerItem status] == AVPlayerStatusFailed) {
             
             NSLog(@"AVPlayerStatusFailed");
             _playBtn.enabled = NO;
             [_playBtn setImage:[UIImage imageNamed:@"cant-play"] forState:UIControlStateNormal];
+        
+        }else{ //AVPlayerStatusUnknown
+            
+            NSLog(@"状态未知.....");
         }
         
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
-        NSTimeInterval timeInterval = [self availableDuration];// 计算缓冲进度
-        NSLog(@"Time Interval:%f",timeInterval);
+        _timeInterval = [self availableDuration];// 计算缓冲进度
+        NSLog(@"Time Interval:%f",_timeInterval);
         CMTime duration = _playerItem.duration;
         CGFloat totalDuration = CMTimeGetSeconds(duration);
-        [self.videoProgress setProgress:timeInterval / totalDuration animated:YES];
+        [self.videoProgress setProgress:_timeInterval / totalDuration animated:YES];
+    
+    }else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
+        NSLog(@"**playbackBufferEmpty***");
+        
+        //如果缓冲的不够，视频的播放会暂停，如下操作可以让视频在缓冲够了之后自动播放，这样不至于在缓冲的时候暂停播放还需要人为点击播放按钮了
+        if (_currentSecond <= _timeInterval) {
+            
+            [_player play];
+        }
     }
 }
 
@@ -158,13 +269,13 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [self.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
 
         // 计算当前在第几秒
-        CGFloat currentSecond = time.value/time.timescale;
+        weakSelf.currentSecond = time.value/time.timescale;
         
         //给slider赋值
-        [weakSelf.slider setValue:currentSecond animated:YES];
+        [weakSelf.slider setValue:weakSelf.currentSecond animated:YES];
         
         //给当前时间和总共时间label赋值
-        NSString *currentTimeString = [weakSelf formatTime:currentSecond];
+        NSString *currentTimeString = [weakSelf formatTime:weakSelf.currentSecond];
 
         weakSelf.currentTimeLbl.text = currentTimeString;
         weakSelf.totalTimeLbl.text = weakSelf.totalTime;
@@ -218,8 +329,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [self addSubview:_topView];
     
     //返回按钮
-    _backBtn = [[UIButton alloc]initWithFrame:CGRectMake(0, 5, _topView.frame.size.height - 10, _topView.frame.size.height - 10)];
+    _backBtn = [[UIButton alloc]initWithFrame:CGRectMake(10, 5, _topView.frame.size.height - 10, _topView.frame.size.height - 10)];
     [_backBtn setBackgroundImage:[UIImage imageNamed:@"btn_back_normal"] forState:UIControlStateNormal];
+    [_backBtn addTarget:self action:@selector(backBtn:) forControlEvents:UIControlEventTouchUpInside];
     
     [_topView addSubview:_backBtn];
     
@@ -231,7 +343,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_topView addSubview:_videoTitleLbl];
     
     //分享
-    _shareBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 30 - 10, (_topView.frame.size.height - 25)/2.0f, 25, 25)];
+    _shareBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 30 - 10, (_topView.frame.size.height - 23)/2.0f, 23, 23)];
     [_shareBtn setBackgroundImage:[UIImage imageNamed:@"share"] forState:UIControlStateNormal];
     [_topView addSubview:_shareBtn];
     
@@ -250,7 +362,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_playBtn setCenter:CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2)];
     [_playBtn setBounds:CGRectMake(0, 0, 65, 65)];
     [_playBtn setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
-    [_playBtn addTarget:self action:@selector(click:) forControlEvents:UIControlEventTouchUpInside];
+    [_playBtn addTarget:self action:@selector(videoPlayClick:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_playBtn];
     
     //下一个视频按钮
@@ -265,12 +377,12 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [self addSubview:_sliderView];
     
     //缓冲进度条
-    _videoProgress = [[UIProgressView alloc]initWithFrame:CGRectMake(62, (_sliderView.frame.size.height - 2)/2.0f, self.frame.size.width - 120 - 4, 2)];
+    _videoProgress = [[UIProgressView alloc]initWithFrame:CGRectMake(75, (_sliderView.frame.size.height - 2)/2.0f, self.frame.size.width - 146 - 4, 2)];
     _videoProgress.backgroundColor = [UIColor purpleColor];
     [_sliderView addSubview:_videoProgress];
     
     //当前时间
-    _currentTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 60, _sliderView.frame.size.height)];
+    _currentTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(10, 0, 60, _sliderView.frame.size.height)];
     _currentTimeLbl.textAlignment = NSTextAlignmentCenter;
     _currentTimeLbl.adjustsFontSizeToFitWidth = YES;
     _currentTimeLbl.textColor = [UIColor whiteColor];
@@ -278,9 +390,13 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_sliderView addSubview:self.currentTimeLbl];
     
     //滑动条
-    _slider = [[UISlider alloc]initWithFrame:CGRectMake(60, 0, self.frame.size.width - 120, 30)];
+    _slider = [[UISlider alloc]initWithFrame:CGRectMake(73, 0, self.frame.size.width - 146, 30)];
     _slider.backgroundColor = [UIColor clearColor];
+    
+    
+//    [self setUpVideoSlider];
     _slider.tintColor = [UIColor whiteColor];
+    
     
     //设置thumb的图片大小可以改变滑块的大小
     [_slider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(25, 25)] forState:UIControlStateNormal];
@@ -290,7 +406,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_sliderView addSubview:self.slider];
     
     //总共时间
-    _totalTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(self.frame.size.width - 60, 0, 60, _sliderView.frame.size.height)];
+    _totalTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(self.frame.size.width - 70, 0, 60, _sliderView.frame.size.height)];
     _totalTimeLbl.textAlignment = NSTextAlignmentCenter;
     _totalTimeLbl.adjustsFontSizeToFitWidth = YES;
     _totalTimeLbl.textColor = [UIColor whiteColor];
@@ -299,6 +415,34 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     
 }
 
+- (void)setUpVideoSlider{
+//    self.slider.maximumValue = CMTimeGetSeconds(duration);
+    UIGraphicsBeginImageContextWithOptions((CGSize){ 1, 1 }, YES, 0.0f);
+    UIImage *transparentImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    [self.slider setMinimumTrackImage:transparentImage forState:UIControlStateNormal];
+    [self.slider setMaximumTrackImage:transparentImage forState:UIControlStateNormal];
+}
+
+-(void)backBtn:(UIButton *)button{
+ 
+    [self.player pause];
+    [_playerItem removeObserver:self forKeyPath:@"status"];
+    [_playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+    [_playerItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
+    self.transform = CGAffineTransformIdentity;
+    [self removeFromSuperview];
+}
+
+/**
+ *  滑块的响应方法
+ *
+ *  @param slider 滑块对象
+ */
 -(void)sliderUpdate:(UISlider *)slider{
     NSLog(@"滑块拖动了");
     NSLog(@"value end:%f",slider.value);
@@ -347,23 +491,16 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [self addSubview:volumeView];
 }
 
-//改变图片的大小
--(UIImage *)originalImage:(UIImage *)image scaleToSize:(CGSize)size{
-
-    UIGraphicsBeginImageContext(size);
-    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
-    
-    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    return scaledImage;
-}
 
 - (void)updateVideoSlider:(CGFloat)currentSecond {
     [self.slider setValue:currentSecond animated:YES];
 }
 
-//视频播放结束的响应方法
+/**
+ *  视频播放结束的响应方法
+ *
+ *  @param notification 通知对象
+ */
 - (void)moviePlayDidEnd:(NSNotification *)notification {
     NSLog(@"Play end");
     
@@ -374,7 +511,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     }];
 }
 
-- (void)click:(UIButton *)bt
+- (void)videoPlayClick:(UIButton *)bt
 {
     if (_player.rate == 1) {
         //暂停播放
@@ -433,6 +570,41 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 + (Class)layerClass
 {
     return [AVPlayerLayer class];
+}
+
+/**
+ *  改变图片的大小
+ *
+ *  @param image 源图片
+ *  @param size  要裁剪的尺寸
+ *
+ *  @return 返回裁剪后的尺寸
+ */
+-(UIImage *)originalImage:(UIImage *)image scaleToSize:(CGSize)size{
+    
+    UIGraphicsBeginImageContext(size);
+    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    
+    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return scaledImage;
+}
+
+/**
+ *  播放
+ */
+
+-(void)play{
+
+    [self.player play];
+}
+
+/**
+ *  暂停
+ */
+-(void)pause{
+    [self.player pause];
 }
 
 @end

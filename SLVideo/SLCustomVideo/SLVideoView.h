@@ -10,7 +10,14 @@
 
 @interface SLVideoView : UIView
 
-//初始化方法  传入url  传入frame
+/**
+ *  视频初始化
+ *
+ *  @param frame 视频界面大小
+ *  @param url   视频URL
+ *
+ *  @return 返回一个视频视图对象
+ */
 - (instancetype)initWithFrame:(CGRect)frame url:(NSString *)url;
 
 @end
