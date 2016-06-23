@@ -74,10 +74,15 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //缓冲的时间
 @property (nonatomic, assign) NSTimeInterval timeInterval;
 
+//用于显示当前的快进或快退的信息
+@property (nonatomic, strong) UILabel *showLbl;
 
 @end
 
-@implementation SLVideoView
+@implementation SLVideoView{
+    
+    float _touchTime;
+}
 
 //初始化方法实现
 - (instancetype)initWithFrame:(CGRect)frame url:(NSString *)url
@@ -113,7 +118,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         
         //创建滑动条等控件
         [self createSliderWithPlayerItem:self.playerItem];
-        [self controlVolume];
+//        [self controlVolume];
         
         //添加拖动手势
         UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGesture:)];
@@ -138,13 +143,13 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     CGFloat pointY = fabs(point.y);
     
 //    NSLog(@"拖动了。。。X:%f------Y:%f",pointX,pointY);
-    float touchTime = _player.currentTime.value;
-    
-    
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan:
         {
             NSLog(@"开始拖动。。。。");
+            _showLbl.hidden = NO;
+            
+            _touchTime = _currentSecond;
         }
             break;
         case UIGestureRecognizerStateChanged:
@@ -152,8 +157,30 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             NSLog(@"拖动中。。。。");
             if (pointX > pointY) { //水平滑动
                 
+                _touchTime += point.x;
+                if (point.x > 0) { //快进
+                    NSLog(@"快进>>>>%--f",_touchTime);
+                    if (_touchTime > _playerItem.duration.value) {
+                        
+                        _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",_totalTime,_totalTime];
+                        _touchTime = _playerItem.duration.value;
+                    }else{
+                        
+                        _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",[self formatTime:_touchTime],_totalTime];
+                    }
+                }else{ //快退
+                    NSLog(@"<<<<快退--%f",point.x);
+                    
+                    if (_touchTime < 0) {
+                        
+                        _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",_totalTime,_totalTime];
+                    }else{
+                        
+                        _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",[self formatTime:_touchTime],_totalTime];
+                    }
+                }
                 
-                touchTime += point.x;
+                _touchTime = 0;
 
             }else{ //上下滑动
                 
@@ -164,23 +191,24 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         case UIGestureRecognizerStateEnded:
         {
             NSLog(@"拖动结束。。。。");
+            _showLbl.hidden = YES;
             
             NSLog(@"拖动中。。。。");
             if (pointX > pointY) { //水平滑动
                 
                 if (point.x > 0) { //快进
                     NSLog(@"快进>>>>%--f",point.x);
-                    if (touchTime > _playerItem.duration.value) {
-                        return;
+                    if (_touchTime > _playerItem.duration.value) {
+                        break;
                     }
                 }else{ //快退
                     NSLog(@"<<<<快退--%f",point.x);
-                    if (touchTime < 0) {
-                        return;
+                    if (_touchTime < 0) {
+                        break;
                     }
                 }
                 
-                [_player seekToTime:CMTimeMake(touchTime, 5)];
+                [_player seekToTime:CMTimeMake(_touchTime, 1)];
             }else{ //上下滑动
                 
                 if (point.y < 0) {
@@ -190,7 +218,6 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                 }
                 
             }
-
             
         }
             break;
@@ -199,7 +226,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             break;
     }
     
-    
+     _touchTime = 0;
 }
 
 //监听播放的进度 status播放状态
@@ -218,7 +245,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             CMTime duration = self.playerItem.duration;
             CGFloat totalSecond = playerItem.duration.value / playerItem.duration.timescale;
             _totalTime = [self formatTime:totalSecond];// 格式化成播放时间
-            NSLog(@"总时间:%f",CMTimeGetSeconds(duration));
+            NSLog(@"----总时间----：%f",CMTimeGetSeconds(duration));
             
             self.slider.maximumValue = CMTimeGetSeconds(playerItem.duration);
             self.totalTimeLbl.text = _totalTime;
@@ -412,6 +439,15 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     _totalTimeLbl.textColor = [UIColor whiteColor];
     _totalTimeLbl.text = @"00:00";
     [_sliderView addSubview:_totalTimeLbl];
+    
+    //显示快进或快退
+    _showLbl = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 150, 30)];
+    _showLbl.center = CGPointMake(self.center.x, 70);
+    _showLbl.textAlignment = NSTextAlignmentCenter;
+    _showLbl.textColor = [UIColor whiteColor];
+    _showLbl.adjustsFontSizeToFitWidth = YES;
+    _showLbl.hidden = YES;
+    [self addSubview:_showLbl];
     
 }
 
