@@ -77,11 +77,23 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //用于显示当前的快进或快退的信息
 @property (nonatomic, strong) UILabel *showLbl;
 
+//音量条
+@property (nonatomic, strong) UISlider *volumeSlider;
+
+//左边的音量显示条
+@property (nonatomic, strong) UISlider *showVolueSlider;
+
+//系统音量
+@property (nonatomic, strong) MPVolumeView *volumeView;
+
 @end
 
 @implementation SLVideoView{
     
+    //拖动之后的时间
     float _touchTime;
+    //拖动之后的音量
+    float _volumeValue;
 }
 
 //初始化方法实现
@@ -118,11 +130,12 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         
         //创建滑动条等控件
         [self createSliderWithPlayerItem:self.playerItem];
-//        [self controlVolume];
         
         //添加拖动手势
         UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGesture:)];
         [self addGestureRecognizer:panGesture];
+        
+        [self controlVolume];
     }
     return self;
 }
@@ -130,7 +143,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 #pragma mark - 手势
 
 /**
- *  多动的响应方法
+ *  拖动的响应方法，用来调节视频快进、快退 音量的大小
  *
  *  @param gesture 拖动手势的对象
  */
@@ -147,9 +160,16 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         case UIGestureRecognizerStateBegan:
         {
             NSLog(@"开始拖动。。。。");
-            _showLbl.hidden = NO;
             
-            _touchTime = _currentSecond;
+            if (pointX > pointY) {
+                _showLbl.hidden = NO;
+                _touchTime = (int)(CMTimeGetSeconds(_playerItem.currentTime));
+            }else{
+                [self controlVolume];
+                _volumeValue = _volumeSlider.value;
+                [_showVolueSlider setValue:_volumeSlider.value animated:YES];
+            }
+            
         }
             break;
         case UIGestureRecognizerStateChanged:
@@ -157,11 +177,12 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             NSLog(@"拖动中。。。。");
             if (pointX > pointY) { //水平滑动
                 
-                _touchTime += point.x;
                 if (point.x > 0) { //快进
-                    NSLog(@"快进>>>>%--f",_touchTime);
-                    if (_touchTime > _playerItem.duration.value) {
+                    _touchTime += 1;
+                    //快进的描述大于总共时间
+                    if (_touchTime > CMTimeGetSeconds(_playerItem.duration)) {
                         
+                        //如果没有缓冲完，而你有快进到终点了，此时只能快进到最大缓冲的位置
                         _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",_totalTime,_totalTime];
                         _touchTime = _playerItem.duration.value;
                     }else{
@@ -170,19 +191,50 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                     }
                 }else{ //快退
                     NSLog(@"<<<<快退--%f",point.x);
-                    
+                    _touchTime -= 1;
+                    //快退的时间小于0
                     if (_touchTime < 0) {
                         
-                        _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",_totalTime,_totalTime];
+                        _showLbl.text = [NSString stringWithFormat:@"<<<%@ / %@",@"00:00",_totalTime];
                     }else{
                         
-                        _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",[self formatTime:_touchTime],_totalTime];
+                        _showLbl.text = [NSString stringWithFormat:@"<<<%@ / %@",[self formatTime:_touchTime],_totalTime];
                     }
                 }
-                
-                _touchTime = 0;
 
             }else{ //上下滑动
+        
+                
+                if (point.y < 0) { //增加音量
+                    
+                    _volumeValue  += 0.01;
+                    if (_volumeValue > 1) {
+                        [_volumeSlider setValue:1.0f animated:YES];
+                    }else{
+                        //change system volume, the value is between 0.0f and 1.0f
+                        [_volumeSlider setValue:_volumeValue animated:NO];
+                        
+                        // send UI control event to make the change effect right now.
+                        [_volumeSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
+                    }
+                    
+                    [_showVolueSlider setValue:_volumeSlider.value animated:YES];
+                    
+                }else{  //减小音量
+                    _volumeValue  -= 0.01;
+                    if (_volumeValue < 0) {
+                        [_volumeSlider setValue:0 animated:YES];
+                    }else{
+                        
+                        //change system volume, the value is between 0.0f and 1.0f
+                        [_volumeSlider setValue:_volumeValue animated:NO];
+                        
+                        // send UI control event to make the change effect right now.
+                        [_volumeSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
+                    }
+                    [_showVolueSlider setValue:_volumeSlider.value animated:YES];
+                }
+
                 
             }
             
@@ -197,25 +249,22 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             if (pointX > pointY) { //水平滑动
                 
                 if (point.x > 0) { //快进
-                    NSLog(@"快进>>>>%--f",point.x);
-                    if (_touchTime > _playerItem.duration.value) {
-                        break;
+                    //NSLog(@"快进>>>>%--f",point.x);
+                    if (_touchTime > CMTimeGetSeconds(_playerItem.duration)) {
+                        
+                        _touchTime = CMTimeGetSeconds(_playerItem.duration);
                     }
                 }else{ //快退
-                    NSLog(@"<<<<快退--%f",point.x);
+                    //NSLog(@"<<<<快退--%f",point.x);
                     if (_touchTime < 0) {
-                        break;
+                        _touchTime = 0;
                     }
                 }
                 
                 [_player seekToTime:CMTimeMake(_touchTime, 1)];
+                
             }else{ //上下滑动
                 
-                if (point.y < 0) {
-                    NSLog(@"大大大大大大---%f",point.y);
-                }else{
-                    NSLog(@"小小小小小小---%f",point.y);
-                }
                 
             }
             
@@ -226,7 +275,6 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             break;
     }
     
-     _touchTime = 0;
 }
 
 //监听播放的进度 status播放状态
@@ -239,6 +287,8 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             NSLog(@"AVPlayerStatusReadyToPlay");
             
             _playBtn.enabled = YES;
+            _slider.enabled = YES;
+        
             [_playBtn setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
 
             // 获取视频总长度  转换成秒
@@ -250,8 +300,8 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             self.slider.maximumValue = CMTimeGetSeconds(playerItem.duration);
             self.totalTimeLbl.text = _totalTime;
             
-            // 监听当前时间
-            [self currentTimeUpdate];
+            // 更新显示当前时间label
+            [self currentTimeUIUpdate];
             
             [self.player play];
             [_playBtn setImage:[UIImage imageNamed:@"btn_pause"] forState:UIControlStateNormal];
@@ -260,6 +310,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             
             NSLog(@"AVPlayerStatusFailed");
             _playBtn.enabled = NO;
+            _slider.enabled = NO;
             [_playBtn setImage:[UIImage imageNamed:@"cant-play"] forState:UIControlStateNormal];
         
         }else{ //AVPlayerStatusUnknown
@@ -277,6 +328,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     }else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
         NSLog(@"**playbackBufferEmpty***");
         
+        UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, 0, 0)];
+        
+        [self addSubview:indicator];
         //如果缓冲的不够，视频的播放会暂停，如下操作可以让视频在缓冲够了之后自动播放，这样不至于在缓冲的时候暂停播放还需要人为点击播放按钮了
         if (_currentSecond <= _timeInterval) {
             
@@ -289,11 +343,12 @@ typedef NS_ENUM(NSInteger, VideoDirection){
  *  监听当前的时间
  *
  */
-- (void)currentTimeUpdate{
+- (void)currentTimeUIUpdate{
     
     __weak typeof(self) weakSelf = self;
-    //每秒监听一次
-    [self.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
+    //每秒监听一次，更新UI
+    //CMTimeGetSeconds(_playerItem.currentTime)这样也可以获取当前时间，当时不能实时更新UI啊
+    [weakSelf.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
 
         // 计算当前在第几秒
         weakSelf.currentSecond = time.value/time.timescale;
@@ -307,6 +362,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         weakSelf.currentTimeLbl.text = currentTimeString;
         weakSelf.totalTimeLbl.text = weakSelf.totalTime;
     }];
+
 }
 
 /**
@@ -449,6 +505,29 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     _showLbl.hidden = YES;
     [self addSubview:_showLbl];
     
+    
+    //音量条
+    UIImageView *volumeImgView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 18, 120)];
+    volumeImgView.center = CGPointMake(45, self.center.y);
+    volumeImgView.backgroundColor = [UIColor redColor];
+    [self addSubview:volumeImgView];
+    
+    UIImageView *volumeBig = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, volumeImgView.frame.size.width, volumeImgView.frame.size.width)];
+    [volumeBig setImage:[UIImage imageNamed:@"volume_big"]];
+    [volumeImgView addSubview:volumeBig];
+    
+    UIImageView *volumeSmall = [[UIImageView alloc]initWithFrame:CGRectMake(0, volumeImgView.frame.size.height - volumeImgView.frame.size.width, volumeImgView.frame.size.width, volumeImgView.frame.size.width)];
+    [volumeSmall setImage:[UIImage imageNamed:@"volume_small"]];
+    [volumeImgView addSubview:volumeSmall];
+    
+    _showVolueSlider = [[UISlider alloc]initWithFrame:CGRectMake(0, 0, volumeImgView.frame.size.height - 2*18, 2)];
+    [_showVolueSlider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(0.01, 0.01)] forState:UIControlStateNormal];
+    _showVolueSlider.transform = CGAffineTransformMakeRotation(-M_PI_2);
+    _showVolueSlider.center = CGPointMake(volumeImgView.center.x, volumeImgView.center.y);
+    NSLog(@"XXXXX:%f------YYYYYY:%f",volumeImgView.center.x,volumeImgView.center.y);
+     NSLog(@"XXXXX:%f------YYYYYY:%f",_showVolueSlider.center.x,_showVolueSlider.center.y);
+    [volumeImgView addSubview:_showVolueSlider];
+    
 }
 
 - (void)setUpVideoSlider{
@@ -484,47 +563,31 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     NSLog(@"value end:%f",slider.value);
     CMTime changedTime = CMTimeMakeWithSeconds(slider.value, 1);
     
-//    __weak typeof(self) weakSelf = self;
     [_player seekToTime:changedTime completionHandler:^(BOOL finished) {
 
-//        [weakSelf.playBtn setTitle:@"Stop" forState:UIControlStateNormal];
     }];
-
 }
 
 /**
  *  控制系统音量
  */
 -(void)controlVolume{
-
-    MPVolumeView *volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(0, (self.frame.size.height - 70)/2.0f + 10, 50, 70)];
-    volumeView.showsRouteButton = NO;
-    volumeView.showsVolumeSlider = YES;
     
-    [volumeView sizeToFit];
-    
-    UISlider* volumeViewSlider = nil;
-    for (UIView *view in [volumeView subviews]){
-        if ([view.class.description isEqualToString:@"MPVolumeSlider"]){
-            volumeViewSlider = (UISlider*)view;
+    _volumeView = [[MPVolumeView alloc]init];
+    [_volumeView sizeToFit];
+    [_volumeView setFrame:CGRectMake(-1000, -1000, 10, 10)];
+    _volumeView.showsVolumeSlider = YES;
+    [self addSubview:_volumeView];
+    [_volumeView userActivity];
+    for (UIView *view in [_volumeView subviews]){
+        if ([[view.class description] isEqualToString:@"MPVolumeSlider"]){
+            _volumeSlider = (UISlider*)view;
             break;
         }
     }
-    
-    volumeView.transform = CGAffineTransformMakeRotation(-M_PI_2);
-    volumeViewSlider.tintColor = [UIColor whiteColor];
-    [volumeViewSlider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(0.1, 0.1)] forState:UIControlStateNormal];
-    
-    // retrieve system volume
-//    float systemVolume = volumeViewSlider.value;
-    
-    // change system volume, the value is between 0.0f and 1.0f
-    [volumeViewSlider setValue:0.5f animated:NO];
-    
-    // send UI control event to make the change effect right now.
-    [volumeViewSlider sendActionsForControlEvents:UIControlEventTouchUpInside];
-
-    [self addSubview:volumeView];
+    _volumeValue = _volumeSlider.value;
+    _showVolueSlider.value = _volumeValue;
+    NSLog(@"获取刚开始的音量：---%f",_volumeValue);
 }
 
 

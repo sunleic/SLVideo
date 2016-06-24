@@ -17,6 +17,7 @@
 		710204151D1A65FB009EC14B /* volume_big@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7102040B1D1A65FB009EC14B /* volume_big@3x.png */; };
 		710204161D1A65FB009EC14B /* volume_small@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7102040C1D1A65FB009EC14B /* volume_small@2x.png */; };
 		710204171D1A65FB009EC14B /* volume_small@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7102040D1D1A65FB009EC14B /* volume_small@3x.png */; };
+		71050DB01D1D2097002C0663 /* sunlei.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 71050DAF1D1D2097002C0663 /* sunlei.jpg */; };
 		717A527C1D17D016005CBA44 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 717A527B1D17D016005CBA44 /* main.m */; };
 		717A527F1D17D016005CBA44 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 717A527E1D17D016005CBA44 /* AppDelegate.m */; };
 		717A52821D17D016005CBA44 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 717A52811D17D016005CBA44 /* ViewController.m */; };
@@ -86,6 +87,7 @@
 		7102040B1D1A65FB009EC14B /* volume_big@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume_big@3x.png"; sourceTree = "<group>"; };
 		7102040C1D1A65FB009EC14B /* volume_small@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume_small@2x.png"; sourceTree = "<group>"; };
 		7102040D1D1A65FB009EC14B /* volume_small@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume_small@3x.png"; sourceTree = "<group>"; };
+		71050DAF1D1D2097002C0663 /* sunlei.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = sunlei.jpg; sourceTree = "<group>"; };
 		717A52771D17D016005CBA44 /* SLVideo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SLVideo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		717A527B1D17D016005CBA44 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		717A527D1D17D016005CBA44 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 		717A52791D17D016005CBA44 /* SLVideo */ = {
 			isa = PBXGroup;
 			children = (
+				71050DAF1D1D2097002C0663 /* sunlei.jpg */,
 				717A52AD1D17D158005CBA44 /* SLCustomVideo */,
 				717A527D1D17D016005CBA44 /* AppDelegate.h */,
 				717A527E1D17D016005CBA44 /* AppDelegate.m */,
@@ -390,6 +393,7 @@
 				71A0B5A71D19193B003F53C1 /* btn_download_disabled.png in Resources */,
 				71A0B5BC1D19193B003F53C1 /* progress_gray.png in Resources */,
 				710204111D1A65FB009EC14B /* HD@3x.png in Resources */,
+				71050DB01D1D2097002C0663 /* sunlei.jpg in Resources */,
 				710204171D1A65FB009EC14B /* volume_small@3x.png in Resources */,
 				71A0B5BB1D19193B003F53C1 /* progress_controller@2x.png in Resources */,
 				710204121D1A65FB009EC14B /* share@2x.png in Resources */,
@@ -601,7 +605,7 @@
 				INFOPLIST_FILE = SLVideo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.sunleis.SLVideo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sunleiss.SLVideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 			};
@@ -616,7 +620,7 @@
 				INFOPLIST_FILE = SLVideo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.sunleis.SLVideo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sunleiss.SLVideo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 			};
