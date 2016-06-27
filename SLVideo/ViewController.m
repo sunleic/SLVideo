@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "SLVideoView.h"
 #import <AVFoundation/AVFoundation.h>
+#import "slViewController.h"
 
 @interface ViewController ()
 
@@ -16,16 +17,9 @@
 
 @implementation ViewController
 
--(void)viewWillAppear:(BOOL)animated{
-    [super viewWillAppear:animated];
-    
-    [[UIApplication sharedApplication]setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    
     
     UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(100, 200, 50, 30)];
     [btn setTitle:@"视频" forState:UIControlStateNormal];
@@ -38,22 +32,25 @@
 
 -(void)btnClick:(UIButton *)button{
     
-    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
-    video.center = self.view.center;
-    //状态栏转向
-    [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationLandscapeRight animated:YES];
+//    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
+//    video.center = self.view.center;
+//    
+//    [UIView animateWithDuration:0.3f animations:^{
+//        video.transform = CGAffineTransformMakeRotation(M_PI/2);
+//        
+//    }];
+//    [self.view addSubview:video];
     
-    [UIView animateWithDuration:0.3f animations:^{
-        video.transform = CGAffineTransformMakeRotation(M_PI/2);
-        
-    }];
-    [self.view addSubview:video];
-
+    slViewController *sl = [[slViewController alloc]init];
+    
+    [self presentViewController:sl animated:YES completion:nil];
+    
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
 
 @end
