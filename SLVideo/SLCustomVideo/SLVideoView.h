@@ -8,7 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol SLVideoViewDelegate <NSObject>
+
+//视频返回按钮
+-(void)backBtn;
+
+@end
+
 @interface SLVideoView : UIView
+
+@property (nonatomic, assign) id <SLVideoViewDelegate> delegate;
 
 /**
  *  视频初始化

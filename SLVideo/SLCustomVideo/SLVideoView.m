@@ -13,33 +13,33 @@
 
 typedef NS_ENUM(NSInteger, VideoDirection){
 
-    VideoDirectionLandScape,
-    VideoDirectionPortrait
+    VideoDirectionLandScape,  //横屏
+    VideoDirectionPortrait    //竖屏
 };
 
 @interface SLVideoView ()
 
 //用于播放视频
 @property (nonatomic, strong) AVPlayer *player;
-
 //小视频时视频的大小
 @property (nonatomic, assign) CGRect originaFrame;
-
 //用于高级自定义，视频管理者
 @property (nonatomic, strong) AVPlayerItem *playerItem;
 
-//顶部视图，包括返回按钮，标题，高清，收藏，分享
+
+//*********顶部视图容器***********
 @property (nonatomic, strong) UIView *topView;
-
+//返回按钮
 @property (nonatomic, strong) UIButton *backBtn;
-
+//标题
 @property (nonatomic, strong) UILabel *videoTitleLbl;
-
+//高清
 @property (nonatomic, strong) UIButton *HDBtn;
-
+//收藏
 @property (nonatomic, strong) UIButton *collectionBtn;
-
+//分享
 @property (nonatomic, strong) UIButton *shareBtn;
+//
 
 //添加一个播放展厅按钮
 @property (nonatomic, strong) UIButton *playBtn;
@@ -47,44 +47,38 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //下一个视频
 @property (nonatomic, strong) UIButton *nextBtn;
 
-//当前播放时间
-@property (nonatomic, copy) NSString *currentTime;
-
-//视频总时间
+//格式化后的视频总时间
 @property (nonatomic ,copy) NSString *totalTime;
 
-//下面三个视图的载体
+//*********底部视图容器***********
 @property (nonatomic, strong) UIView *sliderView;
-
 //当前时间label
 @property (nonatomic, strong) UILabel *currentTimeLbl;
-
 //视频播放的进度条
 @property (nonatomic, strong) UISlider *slider;
-
 //总时间label
 @property (nonatomic, strong) UILabel *totalTimeLbl;
-
 //缓冲进度条
 @property (nonatomic, strong) UIProgressView *videoProgress;
-
-// 计算当前在第几秒
-@property (nonatomic, assign) __block CGFloat currentSecond;
-
 //缓冲的时间
 @property (nonatomic, assign) NSTimeInterval timeInterval;
+
+
+//************音量条容器************
+@property (nonatomic, strong) UIImageView *volumeImgView;
+//音量条
+@property (nonatomic, strong) UISlider *volumeSlider;
+//左边的音量显示条
+@property (nonatomic, strong) UISlider *showVolueSlider;
+//系统音量
+@property (nonatomic, strong) MPVolumeView *volumeView;
+
 
 //用于显示当前的快进或快退的信息
 @property (nonatomic, strong) UILabel *showLbl;
 
-//音量条
-@property (nonatomic, strong) UISlider *volumeSlider;
-
-//左边的音量显示条
-@property (nonatomic, strong) UISlider *showVolueSlider;
-
-//系统音量
-@property (nonatomic, strong) MPVolumeView *volumeView;
+// 计算当前在第几秒
+@property (nonatomic, assign) __block CGFloat currentSecond;
 
 @end
 
@@ -507,26 +501,25 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     
     
     //音量条
-    UIImageView *volumeImgView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 18, 120)];
-    volumeImgView.center = CGPointMake(45, self.center.y);
-    volumeImgView.backgroundColor = [UIColor redColor];
-    [self addSubview:volumeImgView];
+    _volumeImgView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 18, 140)];
+    _volumeImgView.center = CGPointMake(45, self.center.y);
+    _volumeImgView.backgroundColor = [UIColor clearColor];
+    [self addSubview:_volumeImgView];
     
-    UIImageView *volumeBig = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, volumeImgView.frame.size.width, volumeImgView.frame.size.width)];
+    UIImageView *volumeBig = [[UIImageView alloc]initWithFrame:CGRectMake(2, 0, _volumeImgView.frame.size.width - 4, _volumeImgView.frame.size.width - 4)];
     [volumeBig setImage:[UIImage imageNamed:@"volume_big"]];
-    [volumeImgView addSubview:volumeBig];
+    [_volumeImgView addSubview:volumeBig];
     
-    UIImageView *volumeSmall = [[UIImageView alloc]initWithFrame:CGRectMake(0, volumeImgView.frame.size.height - volumeImgView.frame.size.width, volumeImgView.frame.size.width, volumeImgView.frame.size.width)];
+    UIImageView *volumeSmall = [[UIImageView alloc]initWithFrame:CGRectMake(2, _volumeImgView.frame.size.height - _volumeImgView.frame.size.width + 4, _volumeImgView.frame.size.width - 4, _volumeImgView.frame.size.width - 4)];
     [volumeSmall setImage:[UIImage imageNamed:@"volume_small"]];
-    [volumeImgView addSubview:volumeSmall];
+    [_volumeImgView addSubview:volumeSmall];
     
-    _showVolueSlider = [[UISlider alloc]initWithFrame:CGRectMake(0, 0, volumeImgView.frame.size.height - 2*18, 2)];
+    _showVolueSlider = [[UISlider alloc]initWithFrame:CGRectMake(0, 0, _volumeImgView.frame.size.height - 2*18, 2)];
     [_showVolueSlider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(0.01, 0.01)] forState:UIControlStateNormal];
     _showVolueSlider.transform = CGAffineTransformMakeRotation(-M_PI_2);
-    _showVolueSlider.center = CGPointMake(volumeImgView.center.x, volumeImgView.center.y);
-    NSLog(@"XXXXX:%f------YYYYYY:%f",volumeImgView.center.x,volumeImgView.center.y);
-     NSLog(@"XXXXX:%f------YYYYYY:%f",_showVolueSlider.center.x,_showVolueSlider.center.y);
-    [volumeImgView addSubview:_showVolueSlider];
+    _showVolueSlider.center = CGPointMake(_volumeImgView.frame.size.width/2.0f, _volumeImgView.frame.size.height/2.0f);
+    
+    [_volumeImgView addSubview:_showVolueSlider];
     
 }
 
@@ -549,8 +542,11 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
-    self.transform = CGAffineTransformIdentity;
-    [self removeFromSuperview];
+//    self.transform = CGAffineTransformIdentity;
+//    [self removeFromSuperview];
+    
+    [self.delegate backBtn];
+    
 }
 
 /**

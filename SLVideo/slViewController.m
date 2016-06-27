@@ -9,7 +9,7 @@
 #import "slViewController.h"
 #import "SLVideoView.h"
 
-@interface slViewController ()
+@interface slViewController ()<SLVideoViewDelegate>
 
 @end
 
@@ -19,30 +19,14 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
+
     
-    
-    
-        SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
-//        video.center = self.view.center;
-    
-//        [UIView animateWithDuration:0.3f animations:^{
-//            video.transform = CGAffineTransformMakeRotation(M_PI/2);
-//    
-//        }];
-        [self.view addSubview:video];
-    
-    UIButton *button = [[UIButton alloc]initWithFrame:CGRectMake(100, 100, 60, 30)];
-    button.backgroundColor = [UIColor purpleColor];
-    
-    [button addTarget:self action:@selector(btn) forControlEvents:UIControlEventTouchUpInside];
-    
-    [self.view addSubview:button];
+    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
+
+    video.delegate = self;
+    [self.view addSubview:video];
 }
 
--(void)btn{
-    
-    [self dismissViewControllerAnimated:NO completion:nil];
-}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -50,15 +34,15 @@
 }
 
 
--(BOOL)prefersStatusBarHidden{
+//-(BOOL)prefersStatusBarHidden{
+//
+//    return NO;
+//}
 
-    return NO;
-}
-
-- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation{
-
-    return UIStatusBarAnimationFade;
-}
+//- (UIStatusBarAnimation)preferredStatusBarUpdateAnimation{
+//
+//    return UIStatusBarAnimationFade;
+//}
 
 //- (BOOL)shouldAutorotate{
 //
@@ -68,6 +52,13 @@
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations{
     
     return UIInterfaceOrientationMaskLandscapeRight;
+}
+
+#pragma mark -SLVideoViewDelegate
+
+-(void)backBtn{
+    
+    [self dismissViewControllerAnimated:NO completion:nil];
 }
 
 
