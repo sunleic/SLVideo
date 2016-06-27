@@ -11,18 +11,11 @@
 #import <MediaPlayer/MediaPlayer.h>
 
 
-typedef NS_ENUM(NSInteger, VideoDirection){
-
-    VideoDirectionLandScape,  //横屏
-    VideoDirectionPortrait    //竖屏
-};
-
 @interface SLVideoView ()
 
 //用于播放视频
 @property (nonatomic, strong) AVPlayer *player;
-//小视频时视频的大小
-@property (nonatomic, assign) CGRect originaFrame;
+
 //用于高级自定义，视频管理者
 @property (nonatomic, strong) AVPlayerItem *playerItem;
 
@@ -55,7 +48,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //当前时间label
 @property (nonatomic, strong) UILabel *currentTimeLbl;
 //视频播放的进度条
-@property (nonatomic, strong) UISlider *slider;
+@property (nonatomic, strong) UISlider *videoSlider;
 //总时间label
 @property (nonatomic, strong) UILabel *totalTimeLbl;
 //缓冲进度条
@@ -88,6 +81,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     float _touchTime;
     //拖动之后的音量
     float _volumeValue;
+    
+    //视频控件是否隐藏，默认刚打开时不隐藏，3秒后隐藏
+    BOOL isHidden;
 }
 
 //初始化方法实现
@@ -96,7 +92,8 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     if (self = [super initWithFrame:frame]) {
         self.backgroundColor = [UIColor purpleColor];
         
-        self.originaFrame = frame;
+        //默认刚打开时控件不隐藏
+        isHidden = NO;
         
         //初始化播放组件
         NSURL *_url = [NSURL URLWithString:url];
@@ -129,12 +126,62 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGesture:)];
         [self addGestureRecognizer:panGesture];
         
+        //添加单击手势
+        UITapGestureRecognizer *tapGesutre = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapGesture:)];
+        [self addGestureRecognizer:tapGesutre];
+        
+        //创建音量条
         [self controlVolume];
+        
+        //视频刚打开时，让控件们停留3.0秒
+        [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:3.0f];
+
     }
     return self;
 }
 
-#pragma mark - 手势
+-(void)displayVideoControlers{
+    NSLog(@"fdsalkfajlf;jdsklkasdjfkl;asjdfkl;ad`");
+    if (isHidden == NO) {
+    
+        [UIView animateWithDuration:0.5f animations:^{
+            _topView.transform = CGAffineTransformMakeTranslation(_topView.frame.origin.x, -_topView.frame.size.height);
+            
+            _volumeImgView.hidden = YES;
+            _playBtn.hidden = YES;
+            
+            _sliderView.transform = CGAffineTransformMakeTranslation(_sliderView.frame.origin.x, _sliderView.frame.size.height*2);
+        }];
+        
+    }else{
+        
+        [UIView animateWithDuration:0.5f animations:^{
+            _topView.transform = CGAffineTransformIdentity;
+            
+            _volumeImgView.hidden = NO;
+            _playBtn.hidden = NO;
+            
+            _sliderView.transform = CGAffineTransformIdentity;
+        }];
+    
+    }
+    
+    isHidden = !isHidden;
+}
+
+-(void)tapGesture:(UITapGestureRecognizer *)gesture{
+    
+    // 先取消一个3秒后的方法，保证不管点击多少次，都只有最后一次的点击生效
+    [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(displayVideoControlers) object:nil];
+    // 3秒后执行的方法
+    [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:2.0f];
+    
+    if (isHidden == YES) {
+        [self displayVideoControlers];
+    }
+}
+
+#pragma mark - 拖拽手势
 
 /**
  *  拖动的响应方法，用来调节视频快进、快退 音量的大小
@@ -142,6 +189,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
  *  @param gesture 拖动手势的对象
  */
 -(void)panGesture:(UIPanGestureRecognizer *)gesture{
+    
+    // 先取消一个3秒后的方法，保证不管点击多少次，都只有最后一次的点击生效
+    [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(displayVideoControlers) object:nil];
     
     //每秒移动的点
     CGPoint point = [gesture velocityInView:self];
@@ -160,6 +210,11 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                 _touchTime = (int)(CMTimeGetSeconds(_playerItem.currentTime));
             }else{
                 [_showVolueSlider setValue:_volumeValue animated:YES];
+                
+                if (_showVolueSlider.hidden == YES) {
+                    _showVolueSlider.hidden = NO;
+                }
+                
             }
             
         }
@@ -195,7 +250,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                 }
 
             }else{ //上下滑动
-                
+        
                 if (point.y < 0) { //增加音量
                     
                     _volumeValue  += 0.01;
@@ -232,6 +287,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             break;
         case UIGestureRecognizerStateEnded:
         {
+            // 3秒后执行的方法
+            [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:2.0f];
+            
             NSLog(@"拖动结束。。。。");
             _showLbl.hidden = YES;
             
@@ -255,6 +313,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                 
             }else{ //上下滑动
                 
+                if (isHidden == YES) {
+                     _showVolueSlider.hidden = YES;
+                }
                 
             }
             
@@ -277,7 +338,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             NSLog(@"AVPlayerStatusReadyToPlay");
             
             _playBtn.enabled = YES;
-            _slider.enabled = YES;
+            _videoSlider.enabled = YES;
         
             [_playBtn setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
 
@@ -287,7 +348,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             _totalTime = [self formatTime:totalSecond];// 格式化成播放时间
             NSLog(@"----总时间----：%f",CMTimeGetSeconds(duration));
             
-            self.slider.maximumValue = CMTimeGetSeconds(playerItem.duration);
+            self.videoSlider.maximumValue = CMTimeGetSeconds(playerItem.duration);
             self.totalTimeLbl.text = _totalTime;
             
             // 更新显示当前时间label
@@ -300,7 +361,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             
             NSLog(@"AVPlayerStatusFailed");
             _playBtn.enabled = NO;
-            _slider.enabled = NO;
+            _videoSlider.enabled = NO;
             [_playBtn setImage:[UIImage imageNamed:@"cant-play"] forState:UIControlStateNormal];
         
         }else{ //AVPlayerStatusUnknown
@@ -310,7 +371,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
         _timeInterval = [self availableDuration];// 计算缓冲进度
-        NSLog(@"Time Interval:%f",_timeInterval);
+        NSLog(@"视频缓冲到----:%f",_timeInterval);
         CMTime duration = _playerItem.duration;
         CGFloat totalDuration = CMTimeGetSeconds(duration);
         [self.videoProgress setProgress:_timeInterval / totalDuration animated:YES];
@@ -344,7 +405,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
         weakSelf.currentSecond = time.value/time.timescale;
         
         //给slider赋值
-        [weakSelf.slider setValue:weakSelf.currentSecond animated:YES];
+        [weakSelf.videoSlider setValue:weakSelf.currentSecond animated:YES];
         
         //给当前时间和总共时间label赋值
         NSString *currentTimeString = [weakSelf formatTime:weakSelf.currentSecond];
@@ -439,9 +500,9 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [self addSubview:_playBtn];
     
     //下一个视频按钮
-    _nextBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 75, (self.frame.size.height - 65)/2.0f, 65, 65)];
-    [_nextBtn setImage:[UIImage imageNamed:@"btn_next"] forState:UIControlStateNormal];
-    [_topView addSubview:_nextBtn];
+//    _nextBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 75, (self.frame.size.height - 65)/2.0f, 65, 65)];
+//    [_nextBtn setImage:[UIImage imageNamed:@"btn_next"] forState:UIControlStateNormal];
+//    [_topView addSubview:_nextBtn];
     
     
     //缓冲进度条、当前时间、总共时间
@@ -463,20 +524,20 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     [_sliderView addSubview:self.currentTimeLbl];
     
     //滑动条
-    _slider = [[UISlider alloc]initWithFrame:CGRectMake(73, 0, self.frame.size.width - 146, 30)];
-    _slider.backgroundColor = [UIColor clearColor];
+    _videoSlider = [[UISlider alloc]initWithFrame:CGRectMake(73, 0, self.frame.size.width - 146, 30)];
+    _videoSlider.backgroundColor = [UIColor clearColor];
     
     
 //    [self setUpVideoSlider];
-    _slider.tintColor = [UIColor whiteColor];
+    _videoSlider.tintColor = [UIColor whiteColor];
     
     
     //设置thumb的图片大小可以改变滑块的大小
-    [_slider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(25, 25)] forState:UIControlStateNormal];
+    [_videoSlider setThumbImage:[self originalImage:[UIImage imageNamed:@"progress_controller"] scaleToSize:CGSizeMake(25, 25)] forState:UIControlStateNormal];
     
-    [_slider addTarget:self action:@selector(sliderUpdate:) forControlEvents:UIControlEventValueChanged];
+    [_videoSlider addTarget:self action:@selector(sliderUpdate:) forControlEvents:UIControlEventValueChanged];
     
-    [_sliderView addSubview:self.slider];
+    [_sliderView addSubview:_videoSlider];
     
     //总共时间
     _totalTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(self.frame.size.width - 70, 0, 60, _sliderView.frame.size.height)];
@@ -525,8 +586,8 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     UIImage *transparentImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
-    [self.slider setMinimumTrackImage:transparentImage forState:UIControlStateNormal];
-    [self.slider setMaximumTrackImage:transparentImage forState:UIControlStateNormal];
+    [_videoSlider setMinimumTrackImage:transparentImage forState:UIControlStateNormal];
+    [_videoSlider setMaximumTrackImage:transparentImage forState:UIControlStateNormal];
 }
 
 -(void)backBtn:(UIButton *)button{
@@ -542,7 +603,6 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 //    [self removeFromSuperview];
     
     [self.delegate backBtn];
-    
 }
 
 /**
@@ -567,8 +627,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     
     _volumeView = [[MPVolumeView alloc]init];
     _volumeView.showsRouteButton = NO;
-    //默认YES，这里为了突出，故意设置一遍
-     _volumeView.showsVolumeSlider = YES;
+
     [_volumeView sizeToFit];
     [_volumeView setFrame:CGRectMake(-1000, -1000, 10, 10)];
    
@@ -595,7 +654,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 
 
 - (void)updateVideoSlider:(CGFloat)currentSecond {
-    [self.slider setValue:currentSecond animated:YES];
+    [_videoSlider setValue:currentSecond animated:YES];
 }
 
 /**
@@ -608,7 +667,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
     
     __weak typeof(self) weakSelf = self;
     [self.player seekToTime:kCMTimeZero completionHandler:^(BOOL finished) {
-        [weakSelf.slider setValue:0.0 animated:YES];
+        [weakSelf.videoSlider setValue:0.0 animated:YES];
         [weakSelf.playBtn setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
     }];
 }
@@ -617,56 +676,19 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 {
     if (_player.rate == 1) {
         //暂停播放
-        [_player pause];
+        [self pause];
         [bt setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
-
-//        [UIView animateWithDuration:0.3f animations:^{
-//            self.transform = CGAffineTransformIdentity;
-//            self.frame = self.originaFrame;
-//        }];
         
     }else{
         //播放
-        [_player play];
+        [self play];
         [bt setImage:[UIImage imageNamed:@"btn_pause"] forState:UIControlStateNormal];
 
         //按顺序显示，不然导航条和状态栏会重合的啊
         [[UIApplication sharedApplication] setStatusBarHidden:NO];
-
-//        //状态栏转向
-//        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated:YES];
-//        
-//        [UIView animateWithDuration:0.3f animations:^{
-//            self.transform = CGAffineTransformMakeRotation(M_PI/2);
-//            self.transform = CGAffineTransformRotate(CGAffineTransformMakeScale(1.5, 1.5), M_PI/2);
-//            self.center = CGPointMake([UIScreen mainScreen].bounds.size.width/2.0f, [UIScreen mainScreen].bounds.size.height/2.0f);
-//
-//        }];
     }
 }
 
-//刷新控件的位置
--(void)refreshControllersWithVideoDirection:(VideoDirection)direction{
-    
-    //小屏
-    if (direction == VideoDirectionPortrait) {
-        
-    }else{ //全屏
-    
-        self.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height);
-        
-        _sliderView.frame = CGRectMake(0, 0, self.frame.size.height/8.0f, self.frame.size.height);
-        //当前时间
-        self.currentTimeLbl.frame = CGRectMake(0, 0, 60, self.frame.size.height/8.0f);
-        //滑动条
-        self.slider.frame = CGRectMake(60, 0, self.frame.size.width - 120, self.frame.size.height/8.0f);
-        //总共时间
-        self.totalTimeLbl.frame = CGRectMake(self.frame.size.width - 60, 0, 60, self.frame.size.height/8.0f);
-    }
-
-}
-
-#pragma TODO
 //重载一个获取layer的方法(必须实现)
 //默认的layer属性是CALayer类型的，在此改成AVPlayerLayer类型
 + (Class)layerClass
