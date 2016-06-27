@@ -159,9 +159,7 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                 _showLbl.hidden = NO;
                 _touchTime = (int)(CMTimeGetSeconds(_playerItem.currentTime));
             }else{
-                [self controlVolume];
-                _volumeValue = _volumeSlider.value;
-                [_showVolueSlider setValue:_volumeSlider.value animated:YES];
+                [_showVolueSlider setValue:_volumeValue animated:YES];
             }
             
         }
@@ -197,7 +195,6 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                 }
 
             }else{ //上下滑动
-        
                 
                 if (point.y < 0) { //增加音量
                     
@@ -229,7 +226,6 @@ typedef NS_ENUM(NSInteger, VideoDirection){
                     [_showVolueSlider setValue:_volumeSlider.value animated:YES];
                 }
 
-                
             }
             
         }
@@ -570,9 +566,13 @@ typedef NS_ENUM(NSInteger, VideoDirection){
 -(void)controlVolume{
     
     _volumeView = [[MPVolumeView alloc]init];
+    _volumeView.showsRouteButton = NO;
+    //默认YES，这里为了突出，故意设置一遍
+     _volumeView.showsVolumeSlider = YES;
     [_volumeView sizeToFit];
     [_volumeView setFrame:CGRectMake(-1000, -1000, 10, 10)];
-    _volumeView.showsVolumeSlider = YES;
+   
+    
     [self addSubview:_volumeView];
     [_volumeView userActivity];
     for (UIView *view in [_volumeView subviews]){
@@ -581,9 +581,16 @@ typedef NS_ENUM(NSInteger, VideoDirection){
             break;
         }
     }
+    
+    //设置默认打开视频时声音为0.3，如果不设置的话，获取的当前声音始终是0
+    [_volumeSlider setValue:0.2];
+    
+    //获取最是刚打开时的音量值
     _volumeValue = _volumeSlider.value;
+    
+    //设置展示音量条的值
     _showVolueSlider.value = _volumeValue;
-    NSLog(@"获取刚开始的音量：---%f",_volumeValue);
+    
 }
 
 

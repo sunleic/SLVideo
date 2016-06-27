@@ -1,5 +1,5 @@
 //
-//  slViewController.h
+//  SLVideoViewController.h
 //  SLVideo
 //
 //  Created by 孙磊 on 16/6/27.
@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface slViewController : UIViewController
+@interface SLVideoViewController : UIViewController
 
 @end

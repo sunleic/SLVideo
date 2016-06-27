@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import "SLVideoView.h"
 #import <AVFoundation/AVFoundation.h>
-#import "slViewController.h"
+#import "SLVideoViewController.h"
 
 @interface ViewController ()
 
@@ -41,7 +41,7 @@
 //    }];
 //    [self.view addSubview:video];
     
-    slViewController *sl = [[slViewController alloc]init];
+    SLVideoViewController *sl = [[SLVideoViewController alloc]init];
     
     [self presentViewController:sl animated:YES completion:nil];
     
