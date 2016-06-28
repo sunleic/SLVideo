@@ -92,35 +92,14 @@
     if (self = [super initWithFrame:frame]) {
         self.backgroundColor = [UIColor clearColor];
         
-        //默认刚打开时控件不隐藏
+        //默认刚打开视频时控件不隐藏，3s后再做隐藏操作
         isHidden = NO;
         
         //初始化播放组件
-        NSURL *_url = [NSURL URLWithString:url];
-        AVURLAsset *asset = [AVURLAsset URLAssetWithURL:_url options:nil];
-        [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:@"duration"] completionHandler:^{
-            
-            _playerItem = [AVPlayerItem playerItemWithAsset:asset];
-            _player = [AVPlayer playerWithPlayerItem:_playerItem];
-
-            //_player视图加载到layer上
-            [(AVPlayerLayer *)[self layer] setPlayer:_player];
-            
-            //监听播放的进度 status播放状态
-            [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
-            // 监听loadedTimeRanges缓冲属性
-            [self.playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
-            //当没有多余的缓冲的时候会监听
-            [_playerItem addObserver:self forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
-        
-            
-            // 添加视频播放结束通知
-            [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
-            
-        }];
+        [self initVideoWith:url];
         
         //创建滑动条等控件
-        [self createSliderWithPlayerItem:self.playerItem];
+        [self setupUIWithPlayerItem:self.playerItem];
         
         //添加拖动手势
         UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGesture:)];
@@ -130,7 +109,7 @@
         UITapGestureRecognizer *tapGesutre = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapGesture:)];
         [self addGestureRecognizer:tapGesutre];
         
-        //创建音量条
+        //获取系统音量条，并创建自定制音量条
         [self controlVolume];
         
         //视频刚打开时，让控件们停留3.0秒
@@ -140,6 +119,42 @@
     return self;
 }
 
+
+/**
+ *  初始化播放组件
+ *
+ *  @param url 视频的URL字符串
+ */
+-(void)initVideoWith:(NSString *)url{
+
+    
+    NSURL *_url = [NSURL URLWithString:url];
+    AVURLAsset *asset = [AVURLAsset URLAssetWithURL:_url options:nil];
+    [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:@"duration"] completionHandler:^{
+        
+        _playerItem = [AVPlayerItem playerItemWithAsset:asset];
+        _player = [AVPlayer playerWithPlayerItem:_playerItem];
+        
+        //_player视图加载到layer上
+        [(AVPlayerLayer *)[self layer] setPlayer:_player];
+        
+        //监听播放的进度 status播放状态
+        [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+        // 监听loadedTimeRanges缓冲属性
+        [self.playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
+        //当没有多余的缓冲的时候会监听
+        [_playerItem addObserver:self forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
+        
+        
+        // 添加视频播放结束通知
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
+        
+    }];
+}
+
+/**
+ *  显示或隐藏视频控制面板
+ */
 -(void)displayVideoControlers{
     
     if (isHidden == NO) {
@@ -215,7 +230,7 @@
                 [_showVolueSlider setValue:_volumeValue animated:YES];
                 
                 if (isHidden == YES) {
-                    NSLog(@"+++++++++++");
+                    //NSLog(@"+++++++++++");
                     _volumeImgView.hidden = NO;
                 }
             }
@@ -393,7 +408,7 @@
 }
 
 /**
- *  监听当前的时间
+ *  监听视频播放的当前时间，并更新对应的UI
  *
  */
 - (void)currentTimeUIUpdate{
@@ -452,12 +467,13 @@
     return result;
 }
 
+#pragma mark -创建视频控制面板
 /**
- *  创建控制面板
+ *  创建视频控制面板
  *
  *  @param playerItem 当前视频控制对象
  */
-- (void)createSliderWithPlayerItem:(AVPlayerItem *)playerItem{
+- (void)setupUIWithPlayerItem:(AVPlayerItem *)playerItem{
     
     //顶部横条，包括返回，标题，高清，收藏，分享
     _topView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.frame.size.width, 50)];
@@ -501,7 +517,7 @@
     [_playBtn addTarget:self action:@selector(videoPlayClick:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_playBtn];
     
-    //下一个视频按钮
+    //下一集视频按钮
 //    _nextBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 75, (self.frame.size.height - 65)/2.0f, 65, 65)];
 //    [_nextBtn setImage:[UIImage imageNamed:@"btn_next"] forState:UIControlStateNormal];
 //    [_topView addSubview:_nextBtn];
@@ -512,11 +528,6 @@
     _sliderView.backgroundColor = [UIColor clearColor];
     [self addSubview:_sliderView];
     
-    //缓冲进度条
-    _videoProgress = [[UIProgressView alloc]initWithFrame:CGRectMake(75, (_sliderView.frame.size.height - 2)/2.0f, self.frame.size.width - 146 - 4, 2)];
-    _videoProgress.backgroundColor = [UIColor purpleColor];
-    [_sliderView addSubview:_videoProgress];
-    
     //当前时间
     _currentTimeLbl = [[UILabel alloc]initWithFrame:CGRectMake(10, 0, 60, _sliderView.frame.size.height)];
     _currentTimeLbl.textAlignment = NSTextAlignmentCenter;
@@ -525,13 +536,19 @@
     self.currentTimeLbl.text = @"00:00";
     [_sliderView addSubview:self.currentTimeLbl];
     
+    //缓冲进度条
+    _videoProgress = [[UIProgressView alloc]initWithFrame:CGRectMake(73, _sliderView.frame.size.height/2, self.frame.size.width - 146, 2)];
+    _videoProgress.backgroundColor = [UIColor purpleColor];
+    [_sliderView addSubview:_videoProgress];
+    
     //滑动条
-    _videoSlider = [[UISlider alloc]initWithFrame:CGRectMake(73, 0, self.frame.size.width - 146, 30)];
+    _videoSlider = [[UISlider alloc]initWithFrame:CGRectMake(0, 0, self.frame.size.width - 146 + 4, 30)];
+    _videoSlider.center = _videoProgress.center;
     _videoSlider.backgroundColor = [UIColor clearColor];
     
     
-//    [self setUpVideoSlider];
-    _videoSlider.tintColor = [UIColor whiteColor];
+    [self setUpVideoSlider];
+    _videoSlider.tintColor = [UIColor greenColor];
     
     
     //设置thumb的图片大小可以改变滑块的大小
@@ -579,16 +596,19 @@
     _showVolueSlider.center = CGPointMake(_volumeImgView.frame.size.width/2.0f, _volumeImgView.frame.size.height/2.0f);
     
     [_volumeImgView addSubview:_showVolueSlider];
-    
+
 }
 
+/**
+ *  显示缓冲进度条
+ */
 - (void)setUpVideoSlider{
-//    self.slider.maximumValue = CMTimeGetSeconds(duration);
+
     UIGraphicsBeginImageContextWithOptions((CGSize){ 1, 1 }, YES, 0.0f);
     UIImage *transparentImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
-    [_videoSlider setMinimumTrackImage:transparentImage forState:UIControlStateNormal];
+//    [_videoSlider setMinimumTrackImage:transparentImage forState:UIControlStateNormal];
     [_videoSlider setMaximumTrackImage:transparentImage forState:UIControlStateNormal];
 }
 
@@ -613,8 +633,8 @@
  *  @param slider 滑块对象
  */
 -(void)sliderUpdate:(UISlider *)slider{
-    NSLog(@"滑块拖动了");
-    NSLog(@"value end:%f",slider.value);
+    //NSLog(@"滑块拖动了");
+    //NSLog(@"value end:%f",slider.value);
     CMTime changedTime = CMTimeMakeWithSeconds(slider.value, 1);
     
     [_player seekToTime:changedTime completionHandler:^(BOOL finished) {
@@ -654,7 +674,11 @@
     
 }
 
-
+/**
+ *  更新视频进度条
+ *
+ *  @param currentSecond 视频播放的当前时间
+ */
 - (void)updateVideoSlider:(CGFloat)currentSecond {
     [_videoSlider setValue:currentSecond animated:YES];
 }
@@ -674,6 +698,11 @@
     }];
 }
 
+/**
+ *  播放或暂停视频
+ *
+ *  @param bt 视频播放/暂停按钮
+ */
 - (void)videoPlayClick:(UIButton *)bt
 {
     if (_player.rate == 1) {
