@@ -42,6 +42,8 @@
 //    [self.view addSubview:video];
     
     SLVideoViewController *sl = [[SLVideoViewController alloc]init];
+
+    sl.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
     
     [self presentViewController:sl animated:YES completion:nil];
     

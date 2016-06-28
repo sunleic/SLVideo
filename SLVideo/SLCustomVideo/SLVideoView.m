@@ -90,7 +90,7 @@
 - (instancetype)initWithFrame:(CGRect)frame url:(NSString *)url
 {
     if (self = [super initWithFrame:frame]) {
-        self.backgroundColor = [UIColor purpleColor];
+        self.backgroundColor = [UIColor clearColor];
         
         //默认刚打开时控件不隐藏
         isHidden = NO;
@@ -141,7 +141,7 @@
 }
 
 -(void)displayVideoControlers{
-    NSLog(@"fdsalkfajlf;jdsklkasdjfkl;asjdfkl;ad`");
+    
     if (isHidden == NO) {
     
         [UIView animateWithDuration:0.5f animations:^{
@@ -173,10 +173,13 @@
     
     // 先取消一个3秒后的方法，保证不管点击多少次，都只有最后一次的点击生效
     [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(displayVideoControlers) object:nil];
-    // 3秒后执行的方法
-    [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:2.0f];
     
-    if (isHidden == YES) {
+    if (isHidden == YES) { //此时控件s在隐藏着
+        [self displayVideoControlers];
+        
+        // 3秒后执行隐藏的方法
+        [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:3.0f];
+    }else{//此时控件在显示着，本次tap是隐藏控件s
         [self displayVideoControlers];
     }
 }
@@ -203,7 +206,7 @@
     switch (gesture.state) {
         case UIGestureRecognizerStateBegan:
         {
-            NSLog(@"开始拖动。。。。");
+            //NSLog(@"开始拖动。。。。");
             
             if (pointX > pointY) {
                 _showLbl.hidden = NO;
@@ -211,17 +214,16 @@
             }else{
                 [_showVolueSlider setValue:_volumeValue animated:YES];
                 
-                if (_showVolueSlider.hidden == YES) {
-                    _showVolueSlider.hidden = NO;
+                if (isHidden == YES) {
+                    NSLog(@"+++++++++++");
+                    _volumeImgView.hidden = NO;
                 }
-                
             }
-            
         }
             break;
         case UIGestureRecognizerStateChanged:
         {
-            NSLog(@"拖动中。。。。");
+            //NSLog(@"拖动中。。。。");
             if (pointX > pointY) { //水平滑动
                 
                 if (point.x > 0) { //快进
@@ -237,7 +239,7 @@
                         _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",[self formatTime:_touchTime],_totalTime];
                     }
                 }else{ //快退
-                    NSLog(@"<<<<快退--%f",point.x);
+                    //NSLog(@"<<<<快退--%f",point.x);
                     _touchTime -= 1;
                     //快退的时间小于0
                     if (_touchTime < 0) {
@@ -314,7 +316,7 @@
             }else{ //上下滑动
                 
                 if (isHidden == YES) {
-                     _showVolueSlider.hidden = YES;
+                     _volumeImgView.hidden = YES;
                 }
                 
             }

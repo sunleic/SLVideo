@@ -18,7 +18,7 @@
 		710204161D1A65FB009EC14B /* volume_small@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7102040C1D1A65FB009EC14B /* volume_small@2x.png */; };
 		710204171D1A65FB009EC14B /* volume_small@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7102040D1D1A65FB009EC14B /* volume_small@3x.png */; };
 		71050DB01D1D2097002C0663 /* sunlei.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 71050DAF1D1D2097002C0663 /* sunlei.jpg */; };
-		71050DB31D20CFE5002C0663 /* SLVideoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 71050DB21D20CFE5002C0663 /* SLVideoViewController.m */; };
+		71050DB61D225D31002C0663 /* SLVideoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 71050DB51D225D31002C0663 /* SLVideoViewController.m */; };
 		717A527C1D17D016005CBA44 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 717A527B1D17D016005CBA44 /* main.m */; };
 		717A527F1D17D016005CBA44 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 717A527E1D17D016005CBA44 /* AppDelegate.m */; };
 		717A52821D17D016005CBA44 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 717A52811D17D016005CBA44 /* ViewController.m */; };
@@ -89,8 +89,8 @@
 		7102040C1D1A65FB009EC14B /* volume_small@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume_small@2x.png"; sourceTree = "<group>"; };
 		7102040D1D1A65FB009EC14B /* volume_small@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "volume_small@3x.png"; sourceTree = "<group>"; };
 		71050DAF1D1D2097002C0663 /* sunlei.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = sunlei.jpg; sourceTree = "<group>"; };
-		71050DB11D20CFE5002C0663 /* SLVideoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLVideoViewController.h; sourceTree = "<group>"; };
-		71050DB21D20CFE5002C0663 /* SLVideoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLVideoViewController.m; sourceTree = "<group>"; };
+		71050DB41D225D31002C0663 /* SLVideoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLVideoViewController.h; sourceTree = "<group>"; };
+		71050DB51D225D31002C0663 /* SLVideoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLVideoViewController.m; sourceTree = "<group>"; };
 		717A52771D17D016005CBA44 /* SLVideo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SLVideo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		717A527B1D17D016005CBA44 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		717A527D1D17D016005CBA44 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -200,8 +200,6 @@
 				717A52881D17D016005CBA44 /* LaunchScreen.storyboard */,
 				717A528B1D17D016005CBA44 /* Info.plist */,
 				717A527A1D17D016005CBA44 /* Supporting Files */,
-				71050DB11D20CFE5002C0663 /* SLVideoViewController.h */,
-				71050DB21D20CFE5002C0663 /* SLVideoViewController.m */,
 			);
 			path = SLVideo;
 			sourceTree = "<group>";
@@ -238,6 +236,8 @@
 				71A0B5851D19193B003F53C1 /* Images */,
 				717A52AE1D17D187005CBA44 /* SLVideoView.h */,
 				717A52AF1D17D187005CBA44 /* SLVideoView.m */,
+				71050DB41D225D31002C0663 /* SLVideoViewController.h */,
+				71050DB51D225D31002C0663 /* SLVideoViewController.m */,
 			);
 			path = SLCustomVideo;
 			sourceTree = "<group>";
@@ -461,9 +461,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				71050DB61D225D31002C0663 /* SLVideoViewController.m in Sources */,
 				717A52821D17D016005CBA44 /* ViewController.m in Sources */,
 				717A52B01D17D187005CBA44 /* SLVideoView.m in Sources */,
-				71050DB31D20CFE5002C0663 /* SLVideoViewController.m in Sources */,
 				717A527F1D17D016005CBA44 /* AppDelegate.m in Sources */,
 				717A527C1D17D016005CBA44 /* main.m in Sources */,
 			);
