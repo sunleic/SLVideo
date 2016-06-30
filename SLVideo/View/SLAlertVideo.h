@@ -12,11 +12,15 @@
 
 -(void)hideAlertVideo;
 
+-(void)playVideo;
+
 @end
 
 @interface SLAlertVideo : UIView
 
 @property (nonatomic, assign) id <SLAlertVideoDelegate> delegate;
+
+@property (nonatomic, strong) UIImageView *videoImage;
 
 
 //将本视图展示到view上

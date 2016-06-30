@@ -10,12 +10,12 @@
 
 @interface SLAlertVideo ()
 
-@property (nonatomic, strong) UIImageView *videoImage;
-
 @property (nonatomic, strong) UIButton *videoPlayBtn;
 
 @property (nonatomic, strong) UILabel *videoNameLbl;
 
+
+@property (nonatomic, assign) NSInteger countTouches;
 
 @end
 
@@ -30,8 +30,8 @@
         self.clipsToBounds = YES;
         
         //添加单击手势
-        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tap:)];
-        [self addGestureRecognizer:tap];
+        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(pan:)];
+        [self addGestureRecognizer:pan];
         
         [self setupUI];
     }
@@ -53,11 +53,13 @@
     //视频播放图片展示
     _videoImage = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, self.frame.size.width, 375)];
     _videoImage.backgroundColor = [UIColor clearColor];
+    _videoImage.userInteractionEnabled = YES;
     [self addSubview:_videoImage];
     
     //播放按钮
     _videoPlayBtn = [[UIButton alloc]initWithFrame:CGRectMake((_videoImage.frame.size.width - 53)/2, (_videoImage.frame.size.height - 53)/2, 53, 53)];
     [_videoPlayBtn setImage:[UIImage imageNamed:@"videoPlayBtn"] forState:UIControlStateNormal];
+    [_videoPlayBtn addTarget:self action:@selector(playVideo) forControlEvents:UIControlEventTouchUpInside];
     [_videoImage addSubview:_videoPlayBtn];
     
     //下面的功能面板
@@ -78,14 +80,62 @@
 
 }
 
--(void)tap:(UITapGestureRecognizer *)tap{
-    [_videoPlayBtn removeFromSuperview];
-    if ([self.delegate respondsToSelector:@selector(hideAlertVideo)]) {
-        
-        [self.delegate hideAlertVideo];
+-(void)pan:(UIPanGestureRecognizer *)gesture{
+    
+    //每秒移动的点
+    CGPoint point = [gesture velocityInView:self];
+    
+    CGFloat pointX = fabs(point.x);
+    CGFloat pointY = fabs(point.y);
+    
+    //    NSLog(@"拖动了。。。X:%f------Y:%f",pointX,pointY);
+    switch (gesture.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            //NSLog(@"开始拖动。。。。");
+            _countTouches = 0;
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            //NSLog(@"拖动中。。。。");
+            if (pointX < pointY) { //竖直滑动
+
+                _countTouches += 1;
+                if (_countTouches > 15) {
+                    
+                    [_videoPlayBtn removeFromSuperview];
+                    if ([self.delegate respondsToSelector:@selector(hideAlertVideo)]) {
+                        
+                        [self.delegate hideAlertVideo];
+                    }
+                }
+                
+            }
+            
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        {
+            //NSLog(@"开始拖动。。。。");
+            [_videoPlayBtn removeFromSuperview];
+            if ([self.delegate respondsToSelector:@selector(hideAlertVideo)]) {
+                
+                [self.delegate hideAlertVideo];
+            }
+        }
+            break;
+
+            
+        default:
+            break;
     }
     
-    
+}
+
+-(void)playVideo{
+    NSLog(@"**adkfladfjaldfjalsdf***");
+    [self.delegate playVideo];
 }
 
 

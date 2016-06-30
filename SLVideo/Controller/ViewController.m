@@ -32,33 +32,6 @@
     self.navigationItem.title = @"模仿开眼demo";
     
     [self createTableView];
-    
-    UIButton *btn = [[UIButton alloc]initWithFrame:CGRectMake(100, 200, 50, 30)];
-    [btn setTitle:@"视频" forState:UIControlStateNormal];
-    [btn setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-    
-    [btn addTarget:self action:@selector(btnClick:) forControlEvents:UIControlEventTouchUpInside];
-   
-    [self.view addSubview:btn];
-}
-
--(void)btnClick:(UIButton *)button{
-    
-//    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
-//    video.center = self.view.center;
-//    
-//    [UIView animateWithDuration:0.3f animations:^{
-//        video.transform = CGAffineTransformMakeRotation(M_PI/2);
-//        
-//    }];
-//    [self.view addSubview:video];
-    
-    SLVideoViewController *sl = [[SLVideoViewController alloc]init];
-
-    sl.modalTransitionStyle = UIModalTransitionStyleFlipHorizontal;
-    
-    [self presentViewController:sl animated:YES completion:nil];
-    
 }
 
 -(void)createTableView{
@@ -105,11 +78,13 @@
     _alertVideo = [[SLAlertVideo alloc]initWithFrame:sourceRect];
     _alertVideo.delegate = self;
     [_alertVideo showOnView:self.view];
+    _alertVideo.videoImage.image = _selecteCell.picsImgView.image;
     
     
     [UIView animateWithDuration:0.3f animations:^{
         
-        _alertVideo.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);;
+        _alertVideo.frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
+        
         
     } completion:nil];
 }
@@ -129,6 +104,26 @@
         
         [_alertVideo removeFromSuperview];
     }];
+}
+
+-(void)playVideo{
+
+    
+    //    SLVideoView *video = [[SLVideoView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width) url:@"http://7xrpiy.com1.z0.glb.clouddn.com/video%2F1.mp4"];
+    //    video.center = self.view.center;
+    //
+    //    [UIView animateWithDuration:0.3f animations:^{
+    //        video.transform = CGAffineTransformMakeRotation(M_PI/2);
+    //
+    //    }];
+    //    [self.view addSubview:video];
+    
+    SLVideoViewController *sl = [[SLVideoViewController alloc]init];
+    
+    sl.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    
+    [self presentViewController:sl animated:YES completion:nil];
+    
 }
 
 - (void)didReceiveMemoryWarning {
