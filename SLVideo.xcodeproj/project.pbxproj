@@ -64,6 +64,7 @@
 		71E8B6F91D25552700FA4726 /* videoPlayBtn.png in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6F61D25552700FA4726 /* videoPlayBtn.png */; };
 		71E8B6FA1D25552700FA4726 /* videoPlayBtn@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6F71D25552700FA4726 /* videoPlayBtn@2x.png */; };
 		71E8B6FB1D25552700FA4726 /* videoPlayBtn@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6F81D25552700FA4726 /* videoPlayBtn@3x.png */; };
+		71E8B6FD1D25688B00FA4726 /* SLVideo.gif in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6FC1D25688B00FA4726 /* SLVideo.gif */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -153,6 +154,7 @@
 		71E8B6F61D25552700FA4726 /* videoPlayBtn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = videoPlayBtn.png; sourceTree = "<group>"; };
 		71E8B6F71D25552700FA4726 /* videoPlayBtn@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "videoPlayBtn@2x.png"; sourceTree = "<group>"; };
 		71E8B6F81D25552700FA4726 /* videoPlayBtn@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "videoPlayBtn@3x.png"; sourceTree = "<group>"; };
+		71E8B6FC1D25688B00FA4726 /* SLVideo.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = SLVideo.gif; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -203,6 +205,7 @@
 		717A52791D17D016005CBA44 /* SLVideo */ = {
 			isa = PBXGroup;
 			children = (
+				71E8B6FC1D25688B00FA4726 /* SLVideo.gif */,
 				71E8B6E51D254F6C00FA4726 /* Controller */,
 				71E8B6E81D254F6C00FA4726 /* Images */,
 				71E8B6EA1D254F6C00FA4726 /* Model */,
@@ -489,6 +492,7 @@
 				717A52851D17D016005CBA44 /* Main.storyboard in Resources */,
 				7102040F1D1A65FB009EC14B /* collection@3x.png in Resources */,
 				71A0B5C01D19193B003F53C1 /* progress_white.png in Resources */,
+				71E8B6FD1D25688B00FA4726 /* SLVideo.gif in Resources */,
 				7102040E1D1A65FB009EC14B /* collection@2x.png in Resources */,
 				71A0B5B71D19193B003F53C1 /* ic_fastForward@2x.png in Resources */,
 				71A0B5BA1D19193B003F53C1 /* progress_controller.png in Resources */,
