@@ -1,6 +1,9 @@
 # SLVideo
 **一款通过AVPlayer自定制的视频播放器**
 
+**效果图如下：**
+
+![image](https://github.com/SLPowerCoder/SLVideo/blob/master/SLVideo/SLVideo.gif)
  
 * **AVPlayer**：视频播放器，控制视频的播放，暂停等
 
