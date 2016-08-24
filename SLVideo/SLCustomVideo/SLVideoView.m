@@ -9,23 +9,21 @@
 #import "SLVideoView.h"
 #import <AVFoundation/AVFoundation.h>
 #import <MediaPlayer/MediaPlayer.h>
+#import "MBProgressHUD.h"
 
 
 @interface SLVideoView ()
 
 //用于播放视频
 @property (nonatomic, strong) AVPlayer *player;
-
 //用于高级自定义，视频管理者
-@property (nonatomic, strong) AVPlayerItem *playerItem;
+//@property (nonatomic, strong) AVPlayerItem *playerItem;
 
 
 //*********顶部视图容器***********
 @property (nonatomic, strong) UIView *topView;
 //返回按钮
 @property (nonatomic, strong) UIButton *backBtn;
-//标题
-@property (nonatomic, strong) UILabel *videoTitleLbl;
 //高清
 @property (nonatomic, strong) UIButton *HDBtn;
 //收藏
@@ -53,9 +51,8 @@
 @property (nonatomic, strong) UILabel *totalTimeLbl;
 //缓冲进度条
 @property (nonatomic, strong) UIProgressView *videoProgress;
-//缓冲的时间
+//视频已缓冲的时间
 @property (nonatomic, assign) NSTimeInterval timeInterval;
-
 
 //************音量条容器************
 @property (nonatomic, strong) UIImageView *volumeImgView;
@@ -81,8 +78,7 @@
     float _touchTime;
     //拖动之后的音量
     float _volumeValue;
-    
-    //视频控件是否隐藏，默认刚打开时不隐藏，3秒后隐藏
+    //视频控件们是否隐藏，默认刚打开时不隐藏，3秒后隐藏
     BOOL isHidden;
 }
 
@@ -99,7 +95,7 @@
         [self initVideoWith:url];
         
         //创建滑动条等控件
-        [self setupUIWithPlayerItem:self.playerItem];
+        [self setupUI];
         
         //添加拖动手势
         UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(panGesture:)];
@@ -114,11 +110,9 @@
         
         //视频刚打开时，让控件们停留3.0秒
         [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:3.0f];
-
     }
     return self;
 }
-
 
 /**
  *  初始化播放组件
@@ -127,29 +121,23 @@
  */
 -(void)initVideoWith:(NSString *)url{
 
-    
+    if ((url==nil)||(url.length == 0)) return;
     NSURL *_url = [NSURL URLWithString:url];
+    //AVURLAsset继承自抽象类AVAsset，对多媒体资源的数据的一个封装
     AVURLAsset *asset = [AVURLAsset URLAssetWithURL:_url options:nil];
-    [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:@"duration"] completionHandler:^{
         
-        _playerItem = [AVPlayerItem playerItemWithAsset:asset];
-        _player = [AVPlayer playerWithPlayerItem:_playerItem];
-        
-        //_player视图加载到layer上
-        [(AVPlayerLayer *)[self layer] setPlayer:_player];
-        
-        //监听播放的进度 status播放状态
-        [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
-        // 监听loadedTimeRanges缓冲属性
-        [self.playerItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
-        //当没有多余的缓冲的时候会监听
-        [_playerItem addObserver:self forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
-        
-        
-        // 添加视频播放结束通知
-        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:_playerItem];
-        
-    }];
+    AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset];
+    _player = [AVPlayer playerWithPlayerItem:playerItem];
+
+    //_player视图加载到layer上
+    [(AVPlayerLayer *)[self layer] setPlayer:_player];
+    
+    //添加键值监听
+    [self addObserver];
+    
+    // 添加视频播放结束通知
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(moviePlayDidEnd:) name:AVPlayerItemDidPlayToEndTimeNotification object:playerItem];
+   
 }
 
 /**
@@ -164,6 +152,7 @@
             
             _volumeImgView.hidden = YES;
             _playBtn.hidden = YES;
+            _nextBtn.hidden = YES;
             
             _sliderView.transform = CGAffineTransformMakeTranslation(_sliderView.frame.origin.x, _sliderView.frame.size.height*2);
         }];
@@ -175,32 +164,27 @@
             
             _volumeImgView.hidden = NO;
             _playBtn.hidden = NO;
+            _nextBtn.hidden = NO;
             
             _sliderView.transform = CGAffineTransformIdentity;
         }];
-    
     }
-    
     isHidden = !isHidden;
 }
 
 -(void)tapGesture:(UITapGestureRecognizer *)gesture{
     
     // 先取消一个3秒后的方法，保证不管点击多少次，都只有最后一次的点击生效
-    [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(displayVideoControlers) object:nil];
+    [SLVideoView cancelPreviousPerformRequestsWithTarget:self]; //selector:@selector(displayVideoControlers) object:nil];
     
-    if (isHidden == YES) { //此时控件s在隐藏着
-        [self displayVideoControlers];
-        
+    [self displayVideoControlers];
+    if (isHidden == NO) { //此时控件s在隐藏着
         // 3秒后执行隐藏的方法
         [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:3.0f];
-    }else{//此时控件在显示着，本次tap是隐藏控件s
-        [self displayVideoControlers];
     }
 }
 
 #pragma mark - 拖拽手势
-
 /**
  *  拖动的响应方法，用来调节视频快进、快退 音量的大小
  *
@@ -210,7 +194,6 @@
     
     // 先取消一个3秒后的方法，保证不管点击多少次，都只有最后一次的点击生效
     [UIView cancelPreviousPerformRequestsWithTarget:self selector:@selector(displayVideoControlers) object:nil];
-    
     //每秒移动的点
     CGPoint point = [gesture velocityInView:self];
     
@@ -222,13 +205,11 @@
         case UIGestureRecognizerStateBegan:
         {
             //NSLog(@"开始拖动。。。。");
-            
             if (pointX > pointY) {
                 _showLbl.hidden = NO;
-                _touchTime = (int)(CMTimeGetSeconds(_playerItem.currentTime));
+                _touchTime = (int)(CMTimeGetSeconds(_player.currentItem.currentTime));
             }else{
                 [_showVolueSlider setValue:_volumeValue animated:YES];
-                
                 if (isHidden == YES) {
                     //NSLog(@"+++++++++++");
                     _volumeImgView.hidden = NO;
@@ -240,17 +221,14 @@
         {
             //NSLog(@"拖动中。。。。");
             if (pointX > pointY) { //水平滑动
-                
                 if (point.x > 0) { //快进
                     _touchTime += 1;
                     //快进的描述大于总共时间
-                    if (_touchTime > CMTimeGetSeconds(_playerItem.duration)) {
-                        
+                    if (_touchTime > CMTimeGetSeconds(_player.currentItem.duration)) {
                         //如果没有缓冲完，而你有快进到终点了，此时只能快进到最大缓冲的位置
                         _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",_totalTime,_totalTime];
-                        _touchTime = _playerItem.duration.value;
+                        _touchTime = _player.currentItem.duration.value;
                     }else{
-                        
                         _showLbl.text = [NSString stringWithFormat:@"%@ / %@>>>",[self formatTime:_touchTime],_totalTime];
                     }
                 }else{ //快退
@@ -297,9 +275,7 @@
                     }
                     [_showVolueSlider setValue:_volumeSlider.value animated:YES];
                 }
-
             }
-            
         }
             break;
         case UIGestureRecognizerStateEnded:
@@ -315,9 +291,8 @@
                 
                 if (point.x > 0) { //快进
                     //NSLog(@"快进>>>>%--f",point.x);
-                    if (_touchTime > CMTimeGetSeconds(_playerItem.duration)) {
-                        
-                        _touchTime = CMTimeGetSeconds(_playerItem.duration);
+                    if (_touchTime > CMTimeGetSeconds(_player.currentItem.duration)) {
+                        _touchTime = CMTimeGetSeconds(_player.currentItem.duration);
                     }
                 }else{ //快退
                     //NSLog(@"<<<<快退--%f",point.x);
@@ -325,7 +300,6 @@
                         _touchTime = 0;
                     }
                 }
-                
                 [_player seekToTime:CMTimeMake(_touchTime, 1)];
                 
             }else{ //上下滑动
@@ -333,16 +307,13 @@
                 if (isHidden == YES) {
                      _volumeImgView.hidden = YES;
                 }
-                
             }
-            
         }
             break;
             
         default:
             break;
     }
-    
 }
 
 //监听播放的进度 status播放状态
@@ -352,15 +323,14 @@
         
         if ([playerItem status] == AVPlayerStatusReadyToPlay) {
             
-            NSLog(@"AVPlayerStatusReadyToPlay");
-            
+            NSLog(@"-----------AVPlayerStatusReadyToPlay");
             _playBtn.enabled = YES;
             _videoSlider.enabled = YES;
         
             [_playBtn setImage:[UIImage imageNamed:@"btn_play"] forState:UIControlStateNormal];
 
             // 获取视频总长度  转换成秒
-            CMTime duration = self.playerItem.duration;
+            CMTime duration = _player.currentItem.duration;
             CGFloat totalSecond = playerItem.duration.value / playerItem.duration.timescale;
             _totalTime = [self formatTime:totalSecond];// 格式化成播放时间
             NSLog(@"----总时间----：%f",CMTimeGetSeconds(duration));
@@ -376,7 +346,7 @@
             
         } else if ([playerItem status] == AVPlayerStatusFailed) {
             
-            NSLog(@"AVPlayerStatusFailed");
+            NSLog(@"-------------AVPlayerStatusFailed");
             _playBtn.enabled = NO;
             _videoSlider.enabled = NO;
             [_playBtn setImage:[UIImage imageNamed:@"cant-play"] forState:UIControlStateNormal];
@@ -389,19 +359,20 @@
     } else if ([keyPath isEqualToString:@"loadedTimeRanges"]) {
         _timeInterval = [self availableDuration];// 计算缓冲进度
         NSLog(@"视频缓冲到----:%f",_timeInterval);
-        CMTime duration = _playerItem.duration;
+        CMTime duration = _player.currentItem.duration;
         CGFloat totalDuration = CMTimeGetSeconds(duration);
-        [self.videoProgress setProgress:_timeInterval / totalDuration animated:YES];
+        [_videoProgress setProgress:_timeInterval / totalDuration animated:YES];
     
     }else if ([keyPath isEqualToString:@"playbackBufferEmpty"]) {
-        NSLog(@"**playbackBufferEmpty***");
+        NSLog(@"--------------playbackBufferEmpty***");
         
-        UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, 0, 0)];
-        
-        [self addSubview:indicator];
+        MBProgressHUD *hub = [MBProgressHUD showHUDAddedTo:self animated:YES];
+        hub.mode = MBProgressHUDModeIndeterminate;
+        hub.labelText = @"加载中";
+        hub.removeFromSuperViewOnHide = YES;
         //如果缓冲的不够，视频的播放会暂停，如下操作可以让视频在缓冲够了之后自动播放，这样不至于在缓冲的时候暂停播放还需要人为点击播放按钮了
         if (_currentSecond <= _timeInterval) {
-            
+            [hub hide:YES];
             [_player play];
         }
     }
@@ -417,13 +388,10 @@
     //每秒监听一次，更新UI
     //CMTimeGetSeconds(_playerItem.currentTime)这样也可以获取当前时间，当时不能实时更新UI啊
     [weakSelf.player addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:NULL usingBlock:^(CMTime time) {
-
         // 计算当前在第几秒
         weakSelf.currentSecond = time.value/time.timescale;
-        
         //给slider赋值
         [weakSelf.videoSlider setValue:weakSelf.currentSecond animated:YES];
-        
         //给当前时间和总共时间label赋值
         NSString *currentTimeString = [weakSelf formatTime:weakSelf.currentSecond];
 
@@ -452,7 +420,6 @@
     return showtimeNew;
 }
 
-
 /**
  *  计算缓冲总进度
  *
@@ -473,7 +440,7 @@
  *
  *  @param playerItem 当前视频控制对象
  */
-- (void)setupUIWithPlayerItem:(AVPlayerItem *)playerItem{
+- (void)setupUI{
     
     //顶部横条，包括返回，标题，高清，收藏，分享
     _topView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, self.frame.size.width, 50)];
@@ -518,9 +485,10 @@
     [self addSubview:_playBtn];
     
     //下一集视频按钮
-//    _nextBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 75, (self.frame.size.height - 65)/2.0f, 65, 65)];
-//    [_nextBtn setImage:[UIImage imageNamed:@"btn_next"] forState:UIControlStateNormal];
-//    [_topView addSubview:_nextBtn];
+    _nextBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.frame.size.width - 75, (self.frame.size.height - 65)/2.0f, 65, 65)];
+    [_nextBtn setImage:[UIImage imageNamed:@"btn_next"] forState:UIControlStateNormal];
+    [_nextBtn addTarget:self action:@selector(nextAction:) forControlEvents:UIControlEventTouchUpInside];
+    [self addSubview:_nextBtn];
     
     
     //缓冲进度条、当前时间、总共时间
@@ -575,7 +543,6 @@
     _showLbl.hidden = YES;
     [self addSubview:_showLbl];
     
-    
     //音量条
     _volumeImgView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, 18, 140)];
     _volumeImgView.center = CGPointMake(45, self.center.y);
@@ -596,7 +563,6 @@
     _showVolueSlider.center = CGPointMake(_volumeImgView.frame.size.width/2.0f, _volumeImgView.frame.size.height/2.0f);
     
     [_volumeImgView addSubview:_showVolueSlider];
-
 }
 
 /**
@@ -615,15 +581,6 @@
 -(void)backBtn:(UIButton *)button{
  
     [self.player pause];
-    [_playerItem removeObserver:self forKeyPath:@"status"];
-    [_playerItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
-    [_playerItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
-//    self.transform = CGAffineTransformIdentity;
-//    [self removeFromSuperview];
-    
     [self.delegate backBtn];
 }
 
@@ -633,13 +590,37 @@
  *  @param slider 滑块对象
  */
 -(void)sliderUpdate:(UISlider *)slider{
+    
+    // 先取消一个3秒后的方法，保证不管点击多少次，都只有最后一次的点击生效
+    [SLVideoView cancelPreviousPerformRequestsWithTarget:self];
     //NSLog(@"滑块拖动了");
-    //NSLog(@"value end:%f",slider.value);
+    NSLog(@"value end:%f",slider.value);
     CMTime changedTime = CMTimeMakeWithSeconds(slider.value, 1);
     
+    MBProgressHUD *hub = [MBProgressHUD showHUDAddedTo:self animated:YES];
+    hub.mode = MBProgressHUDModeIndeterminate;
+    hub.removeFromSuperViewOnHide = YES;
+    
     [_player seekToTime:changedTime completionHandler:^(BOOL finished) {
-
+        [hub hide:YES afterDelay:.5f];
+        [self performSelector:@selector(displayVideoControlers) withObject:nil afterDelay:3.0f];
     }];
+}
+
+#pragma mark - 切换下一个视频
+//切换下一个视频
+-(void)nextAction:(UIButton *)nextBtn{
+    NSLog(@"切换下一集");
+    
+    [self removeObserver];
+    
+    NSURL *url = [NSURL URLWithString:@"http://video.miidol.cn/vr/4k_3840/zbcmv3840.mp4"];
+    AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:url];
+    [_player replaceCurrentItemWithPlayerItem:playerItem];
+    [_player play];
+    
+    //添加键值监听
+    [self addObserver];
 }
 
 /**
@@ -714,7 +695,6 @@
         //播放
         [self play];
         [bt setImage:[UIImage imageNamed:@"btn_pause"] forState:UIControlStateNormal];
-
         //按顺序显示，不然导航条和状态栏会重合的啊
         [[UIApplication sharedApplication] setStatusBarHidden:NO];
     }
@@ -760,6 +740,36 @@
  */
 -(void)pause{
     [self.player pause];
+}
+
+
+-(void)dealloc{
+    NSLog(@"---%d---%s",__LINE__,__func__);
+    
+    [_player.currentItem removeObserver:self forKeyPath:@"status"];
+    [_player.currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+    [_player.currentItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+
+-(void)addObserver{
+    
+    //监听播放的进度 status播放状态
+    [_player.currentItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+    // 监听loadedTimeRanges缓冲属性
+    [_player.currentItem addObserver:self forKeyPath:@"loadedTimeRanges" options:NSKeyValueObservingOptionNew context:nil];
+    //当没有多余的缓冲的时候会监听
+    [_player.currentItem addObserver:self forKeyPath:@"playbackBufferEmpty" options:NSKeyValueObservingOptionNew context:nil];
+}
+
+
+-(void)removeObserver{
+    
+    [_player.currentItem removeObserver:self forKeyPath:@"status"];
+    [_player.currentItem removeObserver:self forKeyPath:@"loadedTimeRanges"];
+    [_player.currentItem removeObserver:self forKeyPath:@"playbackBufferEmpty"];
 }
 
 @end

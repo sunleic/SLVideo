@@ -65,6 +65,7 @@
 		71E8B6FA1D25552700FA4726 /* videoPlayBtn@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6F71D25552700FA4726 /* videoPlayBtn@2x.png */; };
 		71E8B6FB1D25552700FA4726 /* videoPlayBtn@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6F81D25552700FA4726 /* videoPlayBtn@3x.png */; };
 		71E8B6FD1D25688B00FA4726 /* SLVideo.gif in Resources */ = {isa = PBXBuildFile; fileRef = 71E8B6FC1D25688B00FA4726 /* SLVideo.gif */; };
+		CD6D2B7AA166E04B2D31F3A7 /* libPods-SLVideo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A7DE680F082C42A2FA620BA /* libPods-SLVideo.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +86,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0A7DE680F082C42A2FA620BA /* libPods-SLVideo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SLVideo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		580771B7A1C68B668A42BB00 /* Pods-SLVideo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SLVideo.release.xcconfig"; path = "Pods/Target Support Files/Pods-SLVideo/Pods-SLVideo.release.xcconfig"; sourceTree = "<group>"; };
 		710204041D1A65FB009EC14B /* collection@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "collection@2x.png"; sourceTree = "<group>"; };
 		710204051D1A65FB009EC14B /* collection@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "collection@3x.png"; sourceTree = "<group>"; };
 		710204061D1A65FB009EC14B /* HD@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "HD@2x.png"; sourceTree = "<group>"; };
@@ -113,6 +116,7 @@
 		717A52A11D17D016005CBA44 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		717A52AE1D17D187005CBA44 /* SLVideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLVideoView.h; sourceTree = "<group>"; };
 		717A52AF1D17D187005CBA44 /* SLVideoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SLVideoView.m; sourceTree = "<group>"; };
+		719175D41D6AEEF500ED98EB /* SLVideoPrefixHeader.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SLVideoPrefixHeader.pch; sourceTree = "<group>"; };
 		71A0B5861D19193B003F53C1 /* btn_appdownload_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = btn_appdownload_bg.png; sourceTree = "<group>"; };
 		71A0B5871D19193B003F53C1 /* btn_back_normal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = btn_back_normal.png; sourceTree = "<group>"; };
 		71A0B5881D19193B003F53C1 /* btn_back_normal@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "btn_back_normal@2x.png"; sourceTree = "<group>"; };
@@ -155,6 +159,7 @@
 		71E8B6F71D25552700FA4726 /* videoPlayBtn@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "videoPlayBtn@2x.png"; sourceTree = "<group>"; };
 		71E8B6F81D25552700FA4726 /* videoPlayBtn@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "videoPlayBtn@3x.png"; sourceTree = "<group>"; };
 		71E8B6FC1D25688B00FA4726 /* SLVideo.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = SLVideo.gif; sourceTree = "<group>"; };
+		953497D2600F2EC5BD95DF18 /* Pods-SLVideo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SLVideo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SLVideo/Pods-SLVideo.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +167,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD6D2B7AA166E04B2D31F3A7 /* libPods-SLVideo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -182,6 +188,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		192A75EE3111FD1D34D4BFF6 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				953497D2600F2EC5BD95DF18 /* Pods-SLVideo.debug.xcconfig */,
+				580771B7A1C68B668A42BB00 /* Pods-SLVideo.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		717A526E1D17D016005CBA44 = {
 			isa = PBXGroup;
 			children = (
@@ -189,6 +204,8 @@
 				717A52931D17D016005CBA44 /* SLVideoTests */,
 				717A529E1D17D016005CBA44 /* SLVideoUITests */,
 				717A52781D17D016005CBA44 /* Products */,
+				192A75EE3111FD1D34D4BFF6 /* Pods */,
+				CB7F3DB26255C3CF82669080 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -212,6 +229,7 @@
 				71E8B6EB1D254F6C00FA4726 /* View */,
 				717A52AD1D17D158005CBA44 /* SLCustomVideo */,
 				717A527A1D17D016005CBA44 /* Supporting Files */,
+				719175D41D6AEEF500ED98EB /* SLVideoPrefixHeader.pch */,
 			);
 			path = SLVideo;
 			sourceTree = "<group>";
@@ -346,6 +364,14 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		CB7F3DB26255C3CF82669080 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0A7DE680F082C42A2FA620BA /* libPods-SLVideo.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -353,9 +379,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 717A52A41D17D016005CBA44 /* Build configuration list for PBXNativeTarget "SLVideo" */;
 			buildPhases = (
+				E00ED9E4FC5D982087166560 /* [CP] Check Pods Manifest.lock */,
 				717A52731D17D016005CBA44 /* Sources */,
 				717A52741D17D016005CBA44 /* Frameworks */,
 				717A52751D17D016005CBA44 /* Resources */,
+				E16A0A06A7A7C233FBF87E6D /* [CP] Embed Pods Frameworks */,
+				530FD7FD152CE2206D46B297 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -518,6 +547,54 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		530FD7FD152CE2206D46B297 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SLVideo/Pods-SLVideo-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E00ED9E4FC5D982087166560 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		E16A0A06A7A7C233FBF87E6D /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SLVideo/Pods-SLVideo-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		717A52731D17D016005CBA44 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -668,10 +745,17 @@
 		};
 		717A52A51D17D016005CBA44 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 953497D2600F2EC5BD95DF18 /* Pods-SLVideo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/MBProgressHUD\"",
+					"\"$(SRCROOT)/SLVideo/SLVideoPrefixHeader.pch\"",
+				);
 				INFOPLIST_FILE = SLVideo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -683,10 +767,17 @@
 		};
 		717A52A61D17D016005CBA44 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 580771B7A1C68B668A42BB00 /* Pods-SLVideo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"${PODS_ROOT}/Headers/Public\"",
+					"\"${PODS_ROOT}/Headers/Public/MBProgressHUD\"",
+					"\"$(SRCROOT)/SLVideo/SLVideoPrefixHeader.pch\"",
+				);
 				INFOPLIST_FILE = SLVideo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

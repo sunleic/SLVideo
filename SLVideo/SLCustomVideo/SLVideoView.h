@@ -19,6 +19,9 @@
 
 @property (nonatomic, assign) id <SLVideoViewDelegate> delegate;
 
+//标题
+@property (nonatomic, strong) UILabel *videoTitleLbl;
+
 /**
  *  视频初始化
  *
