@@ -86,7 +86,7 @@
 - (instancetype)initWithFrame:(CGRect)frame url:(NSString *)url
 {
     if (self = [super initWithFrame:frame]) {
-        self.backgroundColor = [UIColor clearColor];
+        self.backgroundColor = [UIColor blackColor];
         
         //默认刚打开视频时控件不隐藏，3s后再做隐藏操作
         isHidden = NO;
